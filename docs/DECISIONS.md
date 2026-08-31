@@ -29,3 +29,33 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
 - FINDING: flows `DatosInicialesProspecto` and `CONTROL_CUENTA_EXISTENTE` mutate data after insert (upper-case names, phone normalisation to `595…`, `Company` cleared for `Fisica`, account linkage by CI/RUC). `MobileFormat` rejects later user edits if the phone is not `595` + 9 digits. The API should normalise phones before DML and should not echo values that automation may change.
 - FINDING: Apex trigger `LeadTriggerHandler` raises `Error en el formato del RUC.` when `RUC__c` lacks the `-` check digit. RUC must be validated in the API layer or not sent.
 - FINDING: `Conf_Parameters__c` (hierarchy custom setting used by the trigger for the admin role) also stores DW/SAP credentials. The Nebüla permission set must not grant access to it.
+
+## 2026-08-29 — Assignment via dedicated queue + distribution flow (Decision 1)
+
+- Decision: API-created Leads are owned by a dedicated queue (`Nebüla Leads`). A distribution flow (Meta pattern) routes them by branch / product family. The `CodigoVendedorAsignacion` validation rule is bypassed with a custom permission granted only to the integration user. Nebüla never sends seller codes.
+- Alternatives: Nebüla sends a seller code resolved via `VendorCode__c` External ID (couples Nebüla to seller roster); integration user owns `ProductSeller__c` rows so the trigger auto-assigns (all leads land on one seller).
+- Impact: requires queue, custom permission, VR edit, distribution flow, and integration-user permission set.
+
+## 2026-08-29 — New Status and LeadSource values (Decision 2)
+
+- Decision: new `Lead.Status` value `Formulario Nebüla` as the initial status of API-created Leads (distribution flow trigger; moves to the standard pipeline on assignment) and new `LeadSource` value `Nebüla`.
+- Reason: replicates the Meta pattern (`Formulario Meta`), avoiding `Prospecto`-stage validation rules and silent vehicle defaults; enables filtering and reporting.
+- Impact: picklist changes on Status and LeadSource; distribution flow keys on the new status.
+
+## 2026-08-31 — Fixed record type, family and brand (Decision 3)
+
+- Decision: every API-created Lead uses record type `Fisica` ("Persona Física"); `Family__c` = "AUTOMÓVILES MG" and `Brand__c` = "MG" are fixed via configuration (Custom Metadata). Nebüla sends none of these.
+- Reason: advertising leads are individuals; the project scope is MG only; `Family__c` drives assignment and the dependent chain Family → Brand → Segmento → Model.
+- Impact: interest model resolution (Segmento__c / interest_model__c) remains the only vehicle input expected from Nebüla — PENDING BUSINESS DECISION (external catalog).
+
+## 2026-08-31 — Duplicate rule and flag (Decision 4)
+
+- Decision: a Lead is marked duplicate when an existing non-lost Lead matches on MobilePhone OR Email (more aggressive than the org duplicate rule, which requires AND). If Nebüla provides `external_lead_id`, an identical value is a certain duplicate. Duplicates are always created, never rejected. New fields on Lead: checkbox `Duplicated_Lead__c` ("Lead Duplicado") plus a text field recording the match reason.
+- Reason: advertising users resubmit forms changing one datum; business direction is create-and-mark.
+- Impact: duplicate evaluator in the application service; two new Lead fields; reporting on duplicates becomes possible.
+
+## 2026-08-31 — Phone mandatory, email optional (Decision 5)
+
+- Decision: the API contract requires phone; email is optional.
+- Reason: in Paraguay the effective contact channel is phone; advertising-form emails are frequently fabricated.
+- Impact: contract validation; org flows normalize phone to `595…` format (MobileFormat VR) — normalization must happen before or during Lead creation.
