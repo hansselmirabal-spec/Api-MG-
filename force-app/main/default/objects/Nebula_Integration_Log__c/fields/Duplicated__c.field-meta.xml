@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Duplicated__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>Indica que el Lead creado por esta solicitud fue detectado como duplicado de un Lead existente no perdido.</description>
+    <externalId>false</externalId>
+    <inlineHelpText>La solicitud resultó en un Lead marcado como duplicado.</inlineHelpText>
+    <label>Duplicado</label>
+    <trackHistory>false</trackHistory>
+    <type>Checkbox</type>
+</CustomField>

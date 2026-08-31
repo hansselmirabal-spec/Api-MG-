@@ -14,8 +14,8 @@ Nebüla sends advertising Leads to us via a single HTTPS REST endpoint. Each
 request creates one Lead. There is no batch/bulk endpoint in v1.
 
 - **Version**: v1.
-- **Endpoint**: `POST <base-url-TBD>/v1/leads` (final path TBD; illustrative
-  only — the production URL will be confirmed before UAT).
+- **Endpoint**: `POST https://<salesforce-domain>/services/apexrest/nebula/v1/leads`
+  (implemented Apex REST path; the sandbox/production host is shared before UAT).
 - **Content type**: `application/json` for both request and response.
 - **Transport**: HTTPS only.
 - **Scope**: this version creates Leads only. It does not expose Lead status

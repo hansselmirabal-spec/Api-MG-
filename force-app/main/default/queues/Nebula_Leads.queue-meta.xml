@@ -5,4 +5,7 @@
     <queueSobject>
         <sobjectType>Lead</sobjectType>
     </queueSobject>
+    <queueSobject>
+        <sobjectType>Task</sobjectType>
+    </queueSobject>
 </Queue>
