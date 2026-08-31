@@ -71,3 +71,9 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
 - Decision: the API does not request any identity document (CI/RUC). `document_number` removed from the contract and mapping.
 - Reason: leads are individuals (Persona Física) and the document is not needed to work an advertising lead; less PII collected.
 - Impact: `CONTROL_CUENTA_EXISTENTE` account-linking automation (keyed on CI/RUC) will not act on API-created Leads; RUC trigger validation is never hit.
+
+## 2026-08-31 — Optional branch_code mapped to Nearest_Branch__c (Decision 7)
+
+- Decision: Nebüla may optionally send `branch_code` (catalog: `ASUNCION`, `CIUDAD_DEL_ESTE`, `CORONEL_OVIEDO`, `ENCARNACION`), resolved to the `Nearest_Branch__c` picklist. Unknown values → 422; omission is valid. "Branch" means a Cóndor branch; third-party dealers are out of scope for v1. `Sucursal_Seleccionada_Meta__c` is not used (Meta-flow specific).
+- Reason: the branch preference exists in the org and helps routing/reporting, but advertising leads often lack it.
+- Impact: resolver validates against a fixed 4-code catalog; closes the dealer/branch-semantics pending item.

@@ -53,7 +53,7 @@ array/batch wrapping).
 | `phone` | string | Required | Confirmed | Paraguayan mobile number. Expected format `595` + 9 digits (e.g. `595981234567`). Other formats may be normalized or rejected — final normalization behavior is an implementation detail, not part of this contract. |
 | `email` | string | Optional | Confirmed | Standard email format when present. |
 | `campaign_code` | string | Unresolved | **PENDING BUSINESS DECISION** | How Nebüla identifies advertising campaigns is not yet defined. Candidate: an external code that Salesforce resolves internally. Do not treat as available until confirmed. |
-| `branch_code` | string | Unresolved | **PENDING BUSINESS DECISION** | How Nebüla identifies the target branch/dealer is not yet defined. Candidate catalog (Cóndor branches currently in use): `ASUNCION`, `CIUDAD_DEL_ESTE`, `CORONEL_OVIEDO`, `ENCARNACION`. This list is illustrative only, not an approved catalog. |
+| `branch_code` | string | Optional | Confirmed | Cóndor branch preferred by the customer. Approved catalog: `ASUNCION`, `CIUDAD_DEL_ESTE`, `CORONEL_OVIEDO`, `ENCARNACION`. An unknown value is rejected with 422 (`UNKNOWN_VALUE`); omitting the field is valid. |
 | `interest_model` | string | Unresolved | **PENDING BUSINESS DECISION** | Vehicle of interest (brand/model/version/year). The catalog of accepted values will be provided by us once confirmed; Nebüla must not send free-form values ahead of that catalog. |
 
 ### 3.1 Example request
@@ -66,7 +66,7 @@ array/batch wrapping).
   "phone": "595981234567",
   "email": "maria.gonzalez@example.com",
   "campaign_code": "TBD",
-  "branch_code": "TBD",
+  "branch_code": "ASUNCION",
   "interest_model": "TBD"
 }
 ```
@@ -169,7 +169,7 @@ does not fail on the first invalid field.
 }
 ```
 
-This behavior depends on the `campaign_code` / `branch_code` catalogs, both
+This behavior depends on the `campaign_code` catalog, still
 **PENDING BUSINESS DECISION** (§9). Shown for shape illustration only.
 
 ---

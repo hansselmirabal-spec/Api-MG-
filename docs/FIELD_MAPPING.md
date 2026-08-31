@@ -181,7 +181,7 @@ No object named "Dealer/Concesionario" exists. Candidates found:
 | Dealer picklist on Opportunity | `Opportunity.Dealer__c` | picklist (`GOROSTIAGA`, `AUTOMALL`) | — | Third-party dealers; no equivalent on Lead. |
 | Region | `Region__c` | `RegionCode__c`, `IntegrationCode__c` | 1525 | Geographic departments, not dealers. |
 
-PROPOSED: Nebüla sends a `dealer_code` resolved through a new custom metadata type (e.g. `Nebula_Dealer_Mapping__mdt`: external code → `Nearest_Branch__c` value + `Sucursal_Seleccionada_Meta__c` value). Whether "concessionaire" in Nebüla means Cóndor branch (4 cities) or third-party dealer (Gorostiaga/Automall): **PENDING BUSINESS DECISION**.
+RESOLVED (Decision 7, 2026-08-31): "branch" means a Cóndor branch. Nebüla may optionally send `branch_code` (4-value catalog) resolved to `Nearest_Branch__c`. `Sucursal_Seleccionada_Meta__c` is not used (Meta-flow specific). Third-party dealers (Gorostiaga/Automall) are out of scope for v1.
 
 ---
 
@@ -240,7 +240,7 @@ answer before implementation.
 | `phone` | `MobilePhone` | Nebüla payload | Yes | CONFIRMED — Decision 5. Normalised by org to `595XXXXXXXXX` (`DatosInicialesProspecto` flow, `MobileFormat` VR on later updates) |
 | `email` | `Email` | Nebüla payload | No | CONFIRMED — Decision 5 |
 | `campaign_code` | `Campana__c` (via resolver — mechanism TBD) | Nebüla payload | Unresolved | **PENDING BUSINESS DECISION** — campaign identification approach (§7) |
-| `branch_code` | `Nearest_Branch__c` / `Sucursal_Seleccionada_Meta__c` (via resolver — mechanism TBD) | Nebüla payload | Unresolved | **PENDING BUSINESS DECISION** — dealer/branch semantics and target field(s) (§6) |
+| `branch_code` | `Nearest_Branch__c` (resolver: code → picklist value) | Nebüla payload | No | CONFIRMED (optional). Catalog: ASUNCION, CIUDAD_DEL_ESTE, CORONEL_OVIEDO, ENCARNACION. `Sucursal_Seleccionada_Meta__c` not used (Meta-flow specific) |
 | `interest_model` (brand/model/version/year) | `Segmento__c` + `interest_model__c` (validated chain) or free-text fields | Nebüla payload | Unresolved | **PENDING BUSINESS DECISION** — Nebüla vehicle catalog is unknown; do not invent (§4, §11) |
 | — | `Duplicated_Lead__c` (new checkbox) | System (computed) | — | CONFIRMED — Decision 4. Set by the application service, never sent by Nebüla |
 | — | Duplicate-reason text field (new, name TBD) | System (computed) | — | CONFIRMED — Decision 4. Records the matched signal (`MobilePhone`, `Email`, or `external_lead_id` if confirmed) |
@@ -264,7 +264,6 @@ Applied to every API-created Lead; Nebüla sends none of these.
 
 - **`external_lead_id`** — whether Nebüla can send a unique identifier per Lead, and the exact Salesforce target field (CLAUDE.md, "Nebüla Lead Identifier").
 - **`campaign_code`** — how Nebüla identifies advertising campaigns and how Salesforce resolves that code (§7; CLAUDE.md, "Campaign identification").
-- **`branch_code` (dealer/branch semantics)** — whether "dealer/concessionaire" means a Cóndor branch (4 cities: `Nearest_Branch__c`) or a third-party dealer (`Opportunity.Dealer__c`-style), and which field(s) it resolves to (§6).
 - **Vehicle model catalog (`interest_model`)** — the catalog of brand/model/version/year values Nebüla will send, to be mapped to `Segmento__c` / `interest_model__c` (§4, §11).
 - **GET status endpoint** — whether Nebüla needs to query Lead status after creation, beyond the synchronous creation response (CLAUDE.md, "Lead status query"). Not designed until confirmed.
 
