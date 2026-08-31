@@ -222,28 +222,52 @@ None is Nebüla-specific. PROPOSED: dedicated API-only user + new permission set
 
 ---
 
-## 10. Proposed mapping skeleton
+## 10. Consolidated mapping (Phase 2)
 
-| Nebüla field (PROPOSED) | Salesforce field | Type | Required | Transformation / resolution | Status |
-|---|---|---|---|---|---|
-| `external_lead_id` | new `Nebula_External_Id__c` (External ID, unique) — or reuse `sfleadcaphfprod__External_Lead_ID__c` | text | yes (proposed) | stored as-is; used for idempotency/duplicates | **PENDING BUSINESS DECISION** (whether Nebüla can send it; which field) |
-| `first_name` | `FirstName` | text | yes | trim; flow upper-cases | Confirmed required by `FirstNameRequired` |
-| `last_name` | `LastName` | text | yes | trim | Confirmed system-required |
-| `phone` | `MobilePhone` | phone | yes/no | normalise to `595XXXXXXXXX`; raw copy in a new field or `Tel_fono_Meta__c`-style field | **PENDING BUSINESS DECISION** (phone vs email mandatory) |
-| `email` | `Email` | email | yes/no | lower-case, RFC check | **PENDING BUSINESS DECISION** |
-| `document_number` | `CI__c` (Fisica) / `RUC__c` (Juridica) | text | no | RUC must be `ci-dv`; CI digits | **PENDING BUSINESS DECISION** (is it sent; person vs company) |
-| `campaign_code` | `Campana__c` | lookup | ? | resolve via Campaign external code / name / auto-create | **PENDING BUSINESS DECISION** (§7) |
-| `dealer_code` | `Nearest_Branch__c` + `Sucursal_Seleccionada_Meta__c` | picklist + text | ? | resolve via custom metadata mapping | **PENDING BUSINESS DECISION** (§6) |
-| `brand` / `model` / `version` / `year` | `Family__c`/`Brand__c`/`Segmento__c`/`interest_model__c` (validated) or `Brand1__c`/`Model__c`/`VehicleOfInterestOfTheWeb__c` (free text) | picklists / text | ? | catalog mapping (custom metadata) or free text | **PENDING BUSINESS DECISION** (Nebüla catalog IDs are unknown; do not invent) |
-| — (constant) | `LeadSource` | picklist | yes | fixed value for Nebüla | **PENDING BUSINESS DECISION** |
-| — (constant) | `Status` | picklist | yes | fixed initial status | **PENDING BUSINESS DECISION** |
-| — (constant) | `RecordTypeId` | lookup | yes | resolved by developer name (no hard-coded ID) | **PENDING BUSINESS DECISION** |
-| — (constant) | `Family__c` | picklist | yes | probably `AUTOMÓVILES MG` | **PENDING BUSINESS DECISION** |
-| `comments` | `Description` or `Comments__c` | text | no | truncate to field length | PROPOSED |
-| `contact_preference` | `Preferencia_de_contacto__c` | picklist | no | map to Correo Electrónico / WhatsApp / Teléfono | PROPOSED |
-| `test_drive` | `TestDriveRequested__c` | boolean | no | | PROPOSED |
-| — (system) | new `Nebula_Is_Duplicate__c`, `Nebula_Duplicate_Of__c` | boolean / lookup | — | set by application service | rule **PENDING BUSINESS DECISION** |
-| — (system) | `OwnerId` | lookup | — | integration user, or queue for assignment | **PENDING BUSINESS DECISION** (§5.5) |
+Supersedes the Phase 1 skeleton. Reflects `docs/DECISIONS.md` (2026-08-29 and
+2026-08-31 entries, including the 2026-08-31 amendment of Decision 1).
+Conventions unchanged (§1): **CONFIRMED** = fixed by an approved decision;
+**PENDING BUSINESS DECISION** = still requires a business/Salesforce-owner
+answer before implementation.
+
+### 10.1 Consolidated mapping table
+
+| API field | Lead field | Source | Required | Status |
+|---|---|---|---|---|
+| `external_lead_id` | new field (name TBD, External ID) | Nebüla payload (proposed) | Proposed required | **PENDING BUSINESS DECISION** — whether Nebüla can send it; exact target field |
+| `first_name` | `FirstName` | Nebüla payload | Yes | CONFIRMED (`FirstNameRequired` VR; trim, flow upper-cases) |
+| `last_name` | `LastName` | Nebüla payload | Yes | CONFIRMED (system-required) |
+| `phone` | `MobilePhone` | Nebüla payload | Yes | CONFIRMED — Decision 5. Normalised by org to `595XXXXXXXXX` (`DatosInicialesProspecto` flow, `MobileFormat` VR on later updates) |
+| `email` | `Email` | Nebüla payload | No | CONFIRMED — Decision 5 |
+| `document_number` | `RUC__c` | Nebüla payload | No | CONFIRMED (optional). Format `NNNNNNN-D` enforced by `LeadTriggerHandler` when present; not sent → no validation |
+| `campaign_code` | `Campana__c` (via resolver — mechanism TBD) | Nebüla payload | Unresolved | **PENDING BUSINESS DECISION** — campaign identification approach (§7) |
+| `branch_code` | `Nearest_Branch__c` / `Sucursal_Seleccionada_Meta__c` (via resolver — mechanism TBD) | Nebüla payload | Unresolved | **PENDING BUSINESS DECISION** — dealer/branch semantics and target field(s) (§6) |
+| `interest_model` (brand/model/version/year) | `Segmento__c` + `interest_model__c` (validated chain) or free-text fields | Nebüla payload | Unresolved | **PENDING BUSINESS DECISION** — Nebüla vehicle catalog is unknown; do not invent (§4, §11) |
+| — | `Duplicated_Lead__c` (new checkbox) | System (computed) | — | CONFIRMED — Decision 4. Set by the application service, never sent by Nebüla |
+| — | Duplicate-reason text field (new, name TBD) | System (computed) | — | CONFIRMED — Decision 4. Records the matched signal (`MobilePhone`, `Email`, or `external_lead_id` if confirmed) |
+| — | Integration identifier (`integration_id`, returned to Nebüla) | System (generated) | — | CONFIRMED mechanism — `ARCHITECTURE.md` §5 Option A (UUID on integration log record); response field only, not a Lead field |
+
+### 10.2 Fixed-by-configuration values
+
+Applied to every API-created Lead; Nebüla sends none of these.
+
+| Salesforce field | Fixed value | Mechanism | Status |
+|---|---|---|---|
+| `RecordTypeId` | `Fisica` (Persona Física) | Resolved by developer name (no hard-coded Id); Custom Metadata | CONFIRMED — Decision 3 |
+| `Family__c` | `AUTOMÓVILES MG` | Custom Metadata | CONFIRMED — Decision 3 |
+| `Brand__c` | `MG` | Custom Metadata | CONFIRMED — Decision 3 |
+| `Status` | `Formulario Nebüla` (new picklist value) | Fixed initial value at insert | CONFIRMED — Decision 2 |
+| `LeadSource` | `Nebüla` (new picklist value) | Fixed value at insert | CONFIRMED — Decision 2 |
+| Owner / queue | Routed to queue `Nebüla Leads` | New entry on the org's single active Lead assignment rule (`LeadSource = 'Nebüla'` → `Nebüla Leads`), applied via `Database.DMLOptions.assignmentRuleHeader`. No new distribution flow in v1 | CONFIRMED — Decision 1 (amended 2026-08-31) |
+| `VendorCode2__c` / `CodigoVendedorAsignacion` VR | Not populated by Nebüla | VR bypassed via custom permission granted only to the integration user | CONFIRMED — Decision 1 |
+
+### 10.3 Remaining PENDING BUSINESS DECISION items
+
+- **`external_lead_id`** — whether Nebüla can send a unique identifier per Lead, and the exact Salesforce target field (CLAUDE.md, "Nebüla Lead Identifier").
+- **`campaign_code`** — how Nebüla identifies advertising campaigns and how Salesforce resolves that code (§7; CLAUDE.md, "Campaign identification").
+- **`branch_code` (dealer/branch semantics)** — whether "dealer/concessionaire" means a Cóndor branch (4 cities: `Nearest_Branch__c`) or a third-party dealer (`Opportunity.Dealer__c`-style), and which field(s) it resolves to (§6).
+- **Vehicle model catalog (`interest_model`)** — the catalog of brand/model/version/year values Nebüla will send, to be mapped to `Segmento__c` / `interest_model__c` (§4, §11).
+- **GET status endpoint** — whether Nebüla needs to query Lead status after creation, beyond the synchronous creation response (CLAUDE.md, "Lead status query"). Not designed until confirmed.
 
 ---
 
