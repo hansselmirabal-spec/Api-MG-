@@ -239,7 +239,6 @@ answer before implementation.
 | `last_name` | `LastName` | Nebüla payload | Yes | CONFIRMED (system-required) |
 | `phone` | `MobilePhone` | Nebüla payload | Yes | CONFIRMED — Decision 5. Normalised by org to `595XXXXXXXXX` (`DatosInicialesProspecto` flow, `MobileFormat` VR on later updates) |
 | `email` | `Email` | Nebüla payload | No | CONFIRMED — Decision 5 |
-| `document_number` | `RUC__c` | Nebüla payload | No | CONFIRMED (optional). Format `NNNNNNN-D` enforced by `LeadTriggerHandler` when present; not sent → no validation |
 | `campaign_code` | `Campana__c` (via resolver — mechanism TBD) | Nebüla payload | Unresolved | **PENDING BUSINESS DECISION** — campaign identification approach (§7) |
 | `branch_code` | `Nearest_Branch__c` / `Sucursal_Seleccionada_Meta__c` (via resolver — mechanism TBD) | Nebüla payload | Unresolved | **PENDING BUSINESS DECISION** — dealer/branch semantics and target field(s) (§6) |
 | `interest_model` (brand/model/version/year) | `Segmento__c` + `interest_model__c` (validated chain) or free-text fields | Nebüla payload | Unresolved | **PENDING BUSINESS DECISION** — Nebüla vehicle catalog is unknown; do not invent (§4, §11) |

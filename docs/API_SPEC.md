@@ -52,7 +52,6 @@ array/batch wrapping).
 | `last_name` | string | Required | Confirmed | Non-empty after trimming. |
 | `phone` | string | Required | Confirmed | Paraguayan mobile number. Expected format `595` + 9 digits (e.g. `595981234567`). Other formats may be normalized or rejected — final normalization behavior is an implementation detail, not part of this contract. |
 | `email` | string | Optional | Confirmed | Standard email format when present. |
-| `document_number` | string | Optional | Confirmed | Paraguayan RUC with check digit. Format `NNNNNNN-D` (e.g. `1234567-8`). If sent without the `-D` suffix, the request is rejected as invalid (see §6). |
 | `campaign_code` | string | Unresolved | **PENDING BUSINESS DECISION** | How Nebüla identifies advertising campaigns is not yet defined. Candidate: an external code that Salesforce resolves internally. Do not treat as available until confirmed. |
 | `branch_code` | string | Unresolved | **PENDING BUSINESS DECISION** | How Nebüla identifies the target branch/dealer is not yet defined. Candidate catalog (Cóndor branches currently in use): `ASUNCION`, `CIUDAD_DEL_ESTE`, `CORONEL_OVIEDO`, `ENCARNACION`. This list is illustrative only, not an approved catalog. |
 | `interest_model` | string | Unresolved | **PENDING BUSINESS DECISION** | Vehicle of interest (brand/model/version/year). The catalog of accepted values will be provided by us once confirmed; Nebüla must not send free-form values ahead of that catalog. |
@@ -66,7 +65,6 @@ array/batch wrapping).
   "last_name": "Gonzalez",
   "phone": "595981234567",
   "email": "maria.gonzalez@example.com",
-  "document_number": "1234567-8",
   "campaign_code": "TBD",
   "branch_code": "TBD",
   "interest_model": "TBD"
@@ -113,7 +111,7 @@ Every response — success or error — returns a JSON object with at least:
   "message": "One or more fields failed validation.",
   "errors": [
     { "field": "phone", "code": "REQUIRED", "message": "phone is required." },
-    { "field": "document_number", "code": "INVALID_FORMAT", "message": "document_number must match NNNNNNN-D." }
+    { "field": "email", "code": "INVALID_FORMAT", "message": "email must be a valid email address." }
   ]
 }
 ```
