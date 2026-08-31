@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StandardValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sorted>true</sorted>
+    <standardValue>
+        <fullName>Asignado por Gerencia</fullName>
+        <default>false</default>
+        <label>Asignado por Gerencia</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Campaña Digital</fullName>
+        <default>false</default>
+        <label>Campaña Digital</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Dealer</fullName>
+        <default>false</default>
+        <label>Dealer</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Campaña</fullName>
+        <default>false</default>
+        <label>Evento</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Freelance</fullName>
+        <default>false</default>
+        <label>Freelance</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Funcionarios</fullName>
+        <default>false</default>
+        <label>Funcionarios</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Gestión Cartera</fullName>
+        <default>false</default>
+        <label>Gestión Cartera</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Gestión propia</fullName>
+        <default>false</default>
+        <label>Gestión propia</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Intercompany</fullName>
+        <default>false</default>
+        <label>Intercompany</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Lead recuperado</fullName>
+        <default>false</default>
+        <label>Lead recuperado</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Licitaciones</fullName>
+        <default>false</default>
+        <label>Licitaciones</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Llamada Telefónica del Prospecto</fullName>
+        <default>false</default>
+        <label>Llamada Telefónica del Prospecto</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Nebüla</fullName>
+        <default>false</default>
+        <label>Nebüla</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Pop-up delSol</fullName>
+        <default>false</default>
+        <label>Pop-up delSol</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Redes Sociales Empresa</fullName>
+        <default>false</default>
+        <label>Redes Sociales Empresa</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Redes Sociales Propias del Vendedor</fullName>
+        <default>false</default>
+        <label>Redes Sociales Propias del Vendedor</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Referido</fullName>
+        <default>false</default>
+        <label>Referido cliente</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Referido colaborador</fullName>
+        <default>false</default>
+        <label>Referido colaborador</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Referido Vendedor</fullName>
+        <default>false</default>
+        <label>Referido vendedor</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Taller</fullName>
+        <default>false</default>
+        <label>Taller</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Visita a Showroom</fullName>
+        <default>false</default>
+        <label>Visita a Showroom</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Web</fullName>
+        <default>false</default>
+        <label>Web</label>
+    </standardValue>
+    <standardValue>
+        <fullName>WhatsApp Corporativo Empresa</fullName>
+        <default>false</default>
+        <label>WhatsApp Corporativo Empresa</label>
+    </standardValue>
+    <standardValue>
+        <fullName>WhatsApp Corporativo</fullName>
+        <default>false</default>
+        <label>WhatsApp Corporativo Vendedor</label>
+    </standardValue>
+</StandardValueSet>

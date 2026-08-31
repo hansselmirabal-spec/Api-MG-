@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>CodigoVendedorAsignacion</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(
+ ISNEW(),
+				NOT(ISPICKVAL(Status, &apos;Nuevo&apos;)), 
+				ISBLANK(VendorCode2__c),
+				$Profile.Name != &apos;Pre-calificación&apos;, 
+$Profile.Name != &apos;Administrador del sistema&apos;,
+NOT($Permission.Nebula_Integration_Bypass)
+)</errorConditionFormula>
+    <errorDisplayField>VendorCode2__c</errorDisplayField>
+    <errorMessage>De debe seleccionar un código de vendedor.</errorMessage>
+</ValidationRule>

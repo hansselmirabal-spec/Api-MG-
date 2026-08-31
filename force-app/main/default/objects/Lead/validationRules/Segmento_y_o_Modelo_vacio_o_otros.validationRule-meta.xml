@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Segmento_y_o_Modelo_vacio_o_otros</fullName>
+    <active>true</active>
+    <description>Se debe cargar un Segmento y Modelo Especifico</description>
+    <errorConditionFormula>AND(
+  /* BYPASS por ventana de gracia: solo valida si NO hay gracia activa */
+  OR(
+    ISBLANK(Validation_Bypass__c),
+    NOW() &gt; Validation_Bypass__c
+  ),
+
+  /* Contexto: Prospecto o conversión (IsConverted cambió a TRUE) */
+  OR(
+    ISPICKVAL(Status, &quot;Prospecto&quot;),
+    AND(ISCHANGED(IsConverted), IsConverted = TRUE)
+  ),
+
+  /* EXCEPCIÓN: familias Usados */
+  NOT(
+    OR(
+      UPPER(TRIM(TEXT(Family__c))) = &quot;AUTOMOVILES USADOS&quot;,
+      UPPER(TRIM(TEXT(Family__c))) = &quot;VEHICULOS COMERCIALES USADOS&quot;
+    )
+  ),
+
+  /* Segmento y Modelo: no vacío, no “otro/otros” */
+  OR(
+    ISBLANK(TEXT(Segmento__c)),
+    TEXT(Segmento__c) = &quot;--None--&quot;,
+    LOWER(TRIM(TEXT(Segmento__c))) = &quot;otro&quot;,
+    LOWER(TRIM(TEXT(Segmento__c))) = &quot;otros&quot;,
+
+    ISBLANK(TEXT(interest_model__c)),
+    TEXT(interest_model__c) = &quot;--None--&quot;,
+    LOWER(TRIM(TEXT(interest_model__c))) = &quot;otro&quot;,
+    LOWER(TRIM(TEXT(interest_model__c))) = &quot;otros&quot;
+  )
+)</errorConditionFormula>
+    <errorDisplayField>Segmento__c</errorDisplayField>
+    <errorMessage>Para pasar a Prospecto hay que definir un Segmento y Modelo especifico.</errorMessage>
+</ValidationRule>

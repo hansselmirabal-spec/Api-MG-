@@ -1,0 +1,747 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RecordType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Fisica</fullName>
+    <active>true</active>
+    <businessProcess>Proceso de Candidatos Condor</businessProcess>
+    <label>Persona Física</label>
+    <picklistValues>
+        <picklist>Industry</picklist>
+        <values>
+            <fullName>ADMINISTRADOR</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>AGRICULTOR</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>AGROGANADERA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>AGROQUIMICOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>ALQUILER DE SANITARIOS PORTATILES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>ALQUILER DE TOLDOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>ALQUILER Y ARRENDAMIENTO DE MAQUINARIAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>ARTICULOS DE FIBRA DE VIDRIO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>ASOCIACION SIN FINES DE LUCRO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>AVICULTURA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>BIOQUIMICO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>CARNES Y EMBUTIDOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>CARPINTERO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COMERCIALIZACION DE AGUA MINERAL</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COMERCIALIZACION DE ARTICULOS VARIOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COMERCIALIZACION DE CAÑA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COMERCIALIZACION DE CERAMICA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COMERCIALIZACION DE CUERO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COMERCIALIZACION DE ELECTRODOMESTICOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COMERCIALIZACION DE HUEVOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COMERCIALIZACION DE MATERIALES DE CONSTRUCCION</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COMERCIALIZACION DE MOTOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COMERCIALIZACION DE PRODUCTOS ELECTRICOS EN GRAL</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COMERCIALIZACION DE PRODUCTOS QUIMICOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COMERCIANTE</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COMPRA Y VENTA DE MERCADERIAS EN GENERAL</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COMPRA Y VENTA DE MUEBLES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COMPRA Y VENTA DE VEHICULOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>CONCEJAL MUNICIPAL</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>CONCESIONARIA DE VEHICULOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>CONSTRUCCIONES Y OBRAS VIALES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>CONSTRUCTORA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>CONSULTORA DE INGENIERIA EN COMERCIO EXTERIOR Y DEDICADA A LA CERTIFICACION DE PROD</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>CONTRATISTA DE OBRAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>COOPERATIVA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DECORACION Y ALQUILERES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUCION Y COMERCIALIZACION DE GAS Y COMBUSTIBLE</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUCION Y VENTA DE LACTEOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUCION Y VENTA DE TANQUES DE OXIGENO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDOR</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDOR DE ACEITE</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDOR DE ACERO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDOR DE BEBIDAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDOR DE CERVEZAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDOR DE COCA COLA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDOR DE GASEOSAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDOR DE JAMON Y QUESO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDOR DE LACTEOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDOR DE LACTOLANDA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDOR DE PAPELERIA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDOR DE PRODUCTOS EN GRAL</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDOR DE QUESOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDOR DE SHELL</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDORA DE ALIMENTOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDORA DE CIGARRILLOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDORA DE LUBRICANTES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDORA DE MEDICAMENTOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DISTRIBUIDORA DE PETROLEO Y DERIVADOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DOCENTE UNIVERSITARIA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>DUEÑA DE SUPERMERCADO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>ELABORACION DE ALIMENTOS PARA ANIMALES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>ELABORACION DE PRODUCTOS LACTEOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>EMPRESA LOGISTICA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>EMPRESARIO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>ESTACION DE SERVICIO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>FABRICA DE PRODUCTOS PLASTICOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>FABRICACION Y COMERCIALIZACION DE CONDUCTORES ELECTRICOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>FABRICACION Y PRODUCCION DE ALIMENTOS BALANCEADOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>FABRICACION Y VENTA DE ADHESIVOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>FABRICACION Y VENTA DE EMBUTIDOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>FABRICACION Y VENTA DE MUEBLES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>FABRICACION Y VENTA DE VIDRIOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>FABRICACION%2C EXPORTACION%2C IMPORTACION Y COMERCIALIZACION DE PRODUCTOS INDUSTRIALES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>FERRETERIA Y EQUIPO INDUSTRIAL</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>FRACCIONADORA DE GAS Y VENTA DE COMBUSTIBLES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>FRIGORIFICO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>FUMIGACION AEREA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>FUNCIONARIO DE ITAIPU</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>FUNCIONARIO DE LA ANDE</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>GASTRONOMIA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>GRANJA AVICOLA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>HORTICULTORA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>IMP DE PINTURAS Y ACCESORIOS AUTOMOVILISTICOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>IMP%2E Y EXP%2E DE BIENES EN GENERAL</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>IMPORTACION</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>IMPORTACION DE MATERIALES PARA DECORACION DE INTERIORES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>IMPORTACION Y COMERCIALIZACION DE ELECTRODOMESTICOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>IMPORTACION Y COMERCIALIZACION DE MUEBLES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>IMPORTACION Y VENTA DE CESPED SINTETICO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>IMPORTACION Y VENTA DE CUBIERTAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>IMPORTADOR DE PRODUCTOS ELECTRONICOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>IMPORTADORA DE PAPELES E INSUMOS GRAFICOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>IMPORTADORA DE TELAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>IMPORTADORA DE VINOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>INDEPENDIENTE</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>INDUSTRIA DE HIERRO Y FERRETERIA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>INDUSTRIA PLASTICA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>INDUSTRIA Y COMERCIO DE ACERO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>INDUSTRIALIZACION DE HARINA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>INDUSTRIAS DE PASTAS FIDEOS Y HARINA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>INMOBILIARIA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>INSUMOS AGRICOLAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>INSUMOS DE LIMPIEZA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>INSUMOS MEDICOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>JUBILADO DE LA POLICIA NACIONAL</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>LABORATORIO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>LOGISTICA Y TRANSPORTE</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>MARKETING%2C PERIODISTA Y ORGANIZADOR DE EVENTOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>MATERIALES DE CONSTRUCCION</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>MUEBLERO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>OBRAS CIVILES%2C VIALES E INDUSTRIALES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>ORGANIZACION NO GUBERNAMENTAL</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>PANADERIA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>PRODUCCION DE ALIMENTOS A BASE DE FRUTAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>PRODUCCION DE EVENTOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>PRODUCCION DE LACTEOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>PRODUCCION Y COMERCIALIZACION DE PRODUCTOS ALIMENTICIOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>PRODUCCION Y VENTA DE SOJA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>PROPIETARIO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>REPRESENTANTE DE PRODUCTOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>REPRESENTANTE DE PRODUCTOS UNILEVER</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>REVESTIMIENTO DE CAMARAS FRIGORIFICAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>SERVICIO DE CATERING</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>SERVICIO DE FLETE</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>SERVICIOS DE INFORMATICA</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>SUPERMERCADO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>TALLER MECANICO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>TECNICO EN TELECOMUNICACIONES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>TRANSFORMADORES Y EQUIPOS ELÉCTRICOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>TRANSPORTE DE ENCOMIENDAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>TRANSPORTE DE PASAJEROS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>TRANSPORTE E INSTALACION DE COLUMNAS DE TENDIDO ELECTRICO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>TRANSPORTE Y ENVIO DE ENCOMIENDAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>TRANSPORTE Y TURISMO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>TRANSPORTE Y VENTA DE COMBUSTIBLES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>TRANSPORTISTA DE CERVEPAR</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>TRANSPORTISTA%2C FLETERO Y DISTRIBUIDOR</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>VENDEDOR</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>VENTA DE ACERO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>VENTA DE ELECTRODOMESTICOS Y MUEBLES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>VENTA DE FRUTAS Y VERDURAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>VENTA DE HERRAMIENTAS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>VENTA DE LUBRICANTES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>VENTA DE MATERIALES DE CONSTRUCCION</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>VENTA DE MOLDEADOS DE POLIETILENO</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>VENTA DE PINTURAS Y COMPLEMENTOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>VENTA DE PRODUCTOS PLASTICOS</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>VENTA DE REPUESTOS Y LUBRICANTES</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>YERBATERA</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>LeadSource</picklist>
+        <values>
+            <fullName>Asignado por Gerencia</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Campaña</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Campaña Digital</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Dealer</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Freelance</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Funcionarios</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Gestión Cartera</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Gestión propia</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Intercompany</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Lead recuperado</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Licitaciones</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Llamada Telefónica del Prospecto</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Nebüla</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Pop-up delSol</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Redes Sociales Empresa</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Redes Sociales Propias del Vendedor</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Referido</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Referido Vendedor</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Referido colaborador</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Taller</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Visita a Showroom</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Web</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>WhatsApp Corporativo</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>WhatsApp Corporativo Empresa</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Name</picklist>
+        <values>
+            <fullName>Distinguida Cliente</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Distinguido Cliente</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Empresa</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Estimada Sra%2E</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Estimado Dr%2E</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Estimado Sr%2E</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Rating</picklist>
+        <values>
+            <fullName>Caliente</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Frío</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Tibio</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+</RecordType>

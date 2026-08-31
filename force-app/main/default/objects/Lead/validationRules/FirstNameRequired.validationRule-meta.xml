@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>FirstNameRequired</fullName>
+    <active>true</active>
+    <description>Obliga al usuario a ingresar primer nombre.</description>
+    <errorConditionFormula>AND(ISBLANK(FirstName),$UserRole.DeveloperName &lt;&gt; &apos;SystemAdministrator&apos;
+)</errorConditionFormula>
+    <errorDisplayField>FirstName</errorDisplayField>
+    <errorMessage>Debe ingresar primer nombre.</errorMessage>
+</ValidationRule>

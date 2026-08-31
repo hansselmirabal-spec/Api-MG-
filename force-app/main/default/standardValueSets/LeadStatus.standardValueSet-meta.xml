@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StandardValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sorted>false</sorted>
+    <standardValue>
+        <fullName>Formulario Meta</fullName>
+        <default>false</default>
+        <label>Lead</label>
+        <converted>false</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>Formulario Nebüla</fullName>
+        <default>false</default>
+        <label>Formulario Nebüla</label>
+        <converted>false</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>Lead MQL</fullName>
+        <default>false</default>
+        <label>Lead MQL</label>
+        <converted>false</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>Lead SQL</fullName>
+        <default>false</default>
+        <label>Lead SQL</label>
+        <converted>false</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>Nurturing</fullName>
+        <default>false</default>
+        <label>Nurturing</label>
+        <converted>false</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>Lead Gestionado</fullName>
+        <default>false</default>
+        <label>Lead Gestionado</label>
+        <converted>false</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>Prospecto</fullName>
+        <default>true</default>
+        <label>Prospecto</label>
+        <converted>false</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>Convertido</fullName>
+        <default>false</default>
+        <label>Convertido</label>
+        <converted>true</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>Perdido</fullName>
+        <default>false</default>
+        <label>Perdido</label>
+        <converted>false</converted>
+    </standardValue>
+</StandardValueSet>
