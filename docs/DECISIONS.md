@@ -59,3 +59,9 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
 - Decision: the API contract requires phone; email is optional.
 - Reason: in Paraguay the effective contact channel is phone; advertising-form emails are frequently fabricated.
 - Impact: contract validation; org flows normalize phone to `595…` format (MobileFormat VR) — normalization must happen before or during Lead creation.
+
+## 2026-08-31 — Decision 1 amended: reuse the active assignment rule, no new flow
+
+- Decision: routing to the `Nebüla Leads` queue is done by adding a rule entry to the org's single active Lead assignment rule ("Reglas de Meta"): `LeadSource = 'Nebüla'` → queue `Nebüla Leads`. No new distribution flow in v1. Apex opts in via `Database.DMLOptions.assignmentRuleHeader`.
+- Evidence: Salesforce allows only one active assignment rule per object; the active rule routes Meta leads (`LeadSource = 'Redes Sociales Empresa'`, `Status = 'Formulario Meta'`, `Family__c ≠ 'AUTOMÓVILES MG'`) to queue `Reglas_Meta`. The "Asignación de prospectos Lead Capture" flow only maps Facebook page identifiers to advisors via `Conexion_Facebook__c` and is out of scope.
+- Impact: smaller metadata footprint (queue + rule entry + custom permission); advisor-level distribution from the queue is a later, optional phase.
