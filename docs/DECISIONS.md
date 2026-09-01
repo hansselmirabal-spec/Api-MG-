@@ -99,3 +99,10 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
 - Reason: shipping UAT and production metadata under the wrong client name would create permanent confusion (Nebüla is a real, distinct client of the group).
 - Alternatives: keep internal API names and change only labels (rejected — the wrong name would live on in code, logs and security objects).
 - Impact: earlier entries in this log were written under the old name and now read "MGAgencia" after a global rename; functional decisions are unchanged. Old Nebula-named org components are removed (or listed in `docs/ADMIN_FOLLOWUPS.md` if deletion was blocked).
+
+## 2026-09-01 — Duplicate scan runs in system mode (DEF-001)
+
+- Decision: the duplicate-detection SOQL in `MGAgenciaDuplicateEvaluator` runs in SYSTEM_MODE via a private `without sharing` inner class; every other operation (validation, Lead DML, logging) stays in user mode / `with sharing`.
+- Reason: duplicate detection must scan Leads org-wide. The least-privilege integration user is not a member of the `MGAgencia_Leads` queue that owns API-created Leads, so a sharing-enforced scan saw nothing and silently reported `duplicated: false` on every request (UAT defect DEF-001). No record data crosses the API boundary beyond the boolean flag and generic reason codes, so the sharing bypass is contained and auditable.
+- Alternatives: adding the integration user to the queue (rejected — grants broad record visibility and inbox noise for a non-human user); a sharing rule to the integration user (rejected — same over-exposure, more admin surface).
+- Impact: `MGAgenciaDuplicateEvaluator` refactor + regression test `duplicateIsDetectedUnderLeastPrivilegeIntegrationUser`; TEST_PLAN §6 documents DEF-001.

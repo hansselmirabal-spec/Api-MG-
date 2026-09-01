@@ -174,4 +174,74 @@ private class MGAgenciaLeadServiceTest {
         System.assert(duplicate.Duplicate_Reason__c.contains('MOBILE_PHONE_MATCH'),
             'Reason records the phone signal, got: ' + duplicate.Duplicate_Reason__c);
     }
+
+    /**
+     * DEF-001 regression: under the real least-privilege integration profile
+     * ("Minimum Access - API Only Integrations" + MGAgencia_Integration permission set),
+     * the assignment rule routes created Leads to the MGAgencia_Leads queue, which the
+     * integration user is NOT a member of. A sharing-enforced duplicate scan therefore
+     * sees no prior Leads and silently reports duplicated=false. The scan must run in
+     * system mode so duplicates are detected org-wide regardless of record visibility.
+     */
+    @IsTest
+    static void duplicateIsDetectedUnderLeastPrivilegeIntegrationUser() {
+        // Same API-only profile as the real integration user; fall back to any
+        // API-only (Salesforce Integration license) profile if the exact name changes.
+        List<Profile> profiles = [SELECT Id FROM Profile
+                                  WHERE Name = 'Minimum Access - API Only Integrations' LIMIT 1];
+        if (profiles.isEmpty()) {
+            profiles = [SELECT Id FROM Profile
+                        WHERE UserLicense.Name = 'Salesforce Integration' LIMIT 1];
+        }
+        System.assertEquals(1, profiles.size(),
+            'An API-only integration profile must exist in the org for this regression test');
+
+        String unique = String.valueOf(Crypto.getRandomInteger()).replace('-', '') + Datetime.now().getTime();
+        User restricted = new User(
+            ProfileId = profiles[0].Id,
+            Username = 'mga.def001.' + unique + '@condor.com.py.qas.test',
+            Email = 'mga.def001@example.com',
+            LastName = 'Integration',
+            Alias = 'mgadef',
+            TimeZoneSidKey = 'America/Asuncion',
+            LocaleSidKey = 'es_PY',
+            EmailEncodingKey = 'UTF-8',
+            LanguageLocaleKey = 'es'
+        );
+        PermissionSet permissionSet = [SELECT Id FROM PermissionSet
+                                       WHERE Name = 'MGAgencia_Integration' LIMIT 1];
+        // The Salesforce Integration license supports Campaign read (granted by the
+        // permission set) only through the "Salesforce API Integration" permission set
+        // license, exactly as the real integration user is provisioned.
+        PermissionSetLicense psl = [SELECT Id FROM PermissionSetLicense
+                                    WHERE DeveloperName = 'SalesforceAPIIntegrationPsl' LIMIT 1];
+        // Setup DML as the running user to avoid MIXED_DML with the later Lead inserts.
+        System.runAs(new User(Id = UserInfo.getUserId())) {
+            insert restricted;
+            insert new PermissionSetLicenseAssign(
+                AssigneeId = restricted.Id, PermissionSetLicenseId = psl.Id);
+            insert new PermissionSetAssignment(
+                AssigneeId = restricted.Id, PermissionSetId = permissionSet.Id);
+        }
+
+        MGAgenciaLeadService.Result second;
+        System.runAs(restricted) {
+            Test.startTest();
+            MGAgenciaLeadService.process(
+                buildRequest('595981697111', 'restricted.dup@example.com', 'neb-svc-def001-a'));
+            second = MGAgenciaLeadService.process(
+                buildRequest('595981697111', 'restricted.other@example.com', 'neb-svc-def001-b'));
+            Test.stopTest();
+        }
+
+        System.assertEquals(201, second.statusCode, 'Duplicate is still created (201)');
+        System.assertEquals(true, second.response.duplicated,
+            'DEF-001: the restricted integration user must detect the phone duplicate even though '
+            + 'the first Lead is owned by a queue it cannot see');
+        Lead flagged = [SELECT Duplicated_Lead__c, Duplicate_Reason__c FROM Lead
+                        WHERE External_Lead_Id__c = 'neb-svc-def001-b'];
+        System.assertEquals(true, flagged.Duplicated_Lead__c, 'Second Lead flagged as duplicate');
+        System.assert(flagged.Duplicate_Reason__c.contains('MOBILE_PHONE_MATCH'),
+            'Reason records the phone signal, got: ' + flagged.Duplicate_Reason__c);
+    }
 }

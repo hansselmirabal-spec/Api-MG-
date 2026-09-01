@@ -3,7 +3,17 @@
  *              A Lead is a duplicate when an existing, non-converted, non-lost Lead matches
  *              on MobilePhone OR Email OR External_Lead_Id__c (only non-blank inputs are
  *              considered). Duplicates are never rejected — the caller creates the Lead and
- *              flags it. Single selective SOQL with bind variables, LIMIT 1, user mode.
+ *              flags it. Single selective SOQL with bind variables, LIMIT 1.
+ *
+ *              SHARING MODEL (DEF-001): the duplicate scan — and ONLY the scan — runs in
+ *              SYSTEM_MODE through a private without-sharing executor. Duplicate detection
+ *              must compare against ALL existing Leads org-wide; the least-privilege
+ *              integration user is not a member of the MGAgencia_Leads queue that owns
+ *              API-created Leads, so a sharing-enforced query returns nothing and every
+ *              duplicate is silently missed (defect DEF-001, found in provider UAT).
+ *              Nothing from other records is exposed to the API consumer beyond the
+ *              boolean duplicate flag and a generic reason code. Everything else in the
+ *              integration (validation, DML, logging) stays in user mode.
  */
 public with sharing class MGAgenciaDuplicateEvaluator {
     /** @description Lead.Status value that marks a lost Lead in this org (see FIELD_MAPPING §9). */
@@ -13,6 +23,25 @@ public with sharing class MGAgenciaDuplicateEvaluator {
     public class Result {
         public Boolean isDuplicate = false;
         public String reason;
+    }
+
+    /**
+     * @description System-mode executor for the duplicate scan only. without sharing +
+     *              SYSTEM_MODE on purpose: the scan must see Leads the integration user
+     *              cannot (queue-owned records under a private OWD). It reads only the
+     *              fields the match logic needs and leaks nothing to the API response —
+     *              the caller reduces the match to a boolean plus generic signal codes.
+     */
+    private without sharing class SystemModeDuplicateScanner {
+        /**
+         * @description Runs the duplicate SOQL bypassing sharing and FLS.
+         * @param soql duplicate query (built from constant fragments + bind placeholders)
+         * @param binds bind variable map
+         * @return up to one matching Lead
+         */
+        private List<Lead> scan(String soql, Map<String, Object> binds) {
+            return Database.queryWithBinds(soql, binds, AccessLevel.SYSTEM_MODE);
+        }
     }
 
     /**
@@ -44,10 +73,10 @@ public with sharing class MGAgenciaDuplicateEvaluator {
             return result;
         }
 
-        String soql = 'SELECT MobilePhone, Email, External_Lead_Id__c FROM Lead'
+        String soql = 'SELECT Id, MobilePhone, Email, External_Lead_Id__c, Status, IsConverted FROM Lead'
             + ' WHERE IsConverted = false AND Status != :lostStatus'
             + ' AND (' + String.join(conditions, ' OR ') + ') LIMIT 1';
-        List<Lead> matches = Database.queryWithBinds(soql, binds, AccessLevel.USER_MODE);
+        List<Lead> matches = new SystemModeDuplicateScanner().scan(soql, binds);
         if (matches.isEmpty()) {
             return result;
         }

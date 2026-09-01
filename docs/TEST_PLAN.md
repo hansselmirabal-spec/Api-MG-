@@ -144,3 +144,30 @@ Verified by SOQL: `PermissionsModifyAllData = false`,
 `PermissionsViewAllData = false`, `PermissionsAuthorApex = false`,
 `PermissionsApiEnabled = true`; only assignments are the profile-owned
 permission set and `MGAgencia_Integration`.
+
+## 6. Defects found in UAT
+
+### DEF-001 — Duplicate detection silently fails for the least-privilege integration user
+
+- **Found**: 2026-09-01, provider (MGAgencia) UAT run.
+- **Symptom**: two Leads with identical `MobilePhone` (`595981697111`) created seconds
+  apart through the real integration-user token — the second returned `duplicated: false`
+  and was not flagged. Same for an identical phone+email pair. Under an admin session the
+  check worked, which is why the Apex suite and the earlier E2E smoke tests passed.
+- **Root cause**: `MGAgenciaDuplicateEvaluator` ran its SOQL in USER_MODE inside a
+  `with sharing` class. The assignment rule transfers API-created Leads to the
+  `MGAgencia_Leads` queue; the integration user is not a queue member, so under the org's
+  private Lead sharing it cannot see prior Leads — the duplicate query matched nothing and
+  every response reported `duplicated: false`.
+- **Fix**: the duplicate scan — and only the scan — now runs in SYSTEM_MODE through a
+  private `without sharing` inner class (`SystemModeDuplicateScanner`). Validation, DML and
+  logging remain in user mode. Nothing from other records reaches the API response beyond
+  the boolean flag and generic reason codes. See `docs/DECISIONS.md` (2026-09-01).
+- **Verification**: new regression test
+  `MGAgenciaLeadServiceTest.duplicateIsDetectedUnderLeastPrivilegeIntegrationUser` creates
+  a user with the real API-only profile ("Minimum Access - API Only Integrations"), assigns
+  the "Salesforce API Integration" PSL plus the `MGAgencia_Integration` permission set, and
+  submits two Leads with the same phone via the service. Red/green proven in `condor-qas`:
+  run `707TH000026Dmhy` FAILED against the pre-fix evaluator (`duplicated=false`);
+  run `707TH000026DyUB` after the fix — **22/22 PASS**, `MGAgenciaDuplicateEvaluator` 95%
+  coverage, all other integration classes 90–100% unchanged.
