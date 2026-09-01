@@ -11,20 +11,32 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "if (pm.request.headers.get('Authorization') && !pm.environment.get('access_token')) {",
-          "  pm.sendRequest({",
-          "    url: pm.environment.get('token_url'),",
-          "    method: 'POST',",
-          "    header: {'Content-Type':'application/x-www-form-urlencoded'},",
-          "    body: { mode: 'urlencoded', urlencoded: [",
-          "      {key:'grant_type', value:'client_credentials'},",
-          "      {key:'client_id', value: pm.environment.get('client_id')},",
-          "      {key:'client_secret', value: pm.environment.get('client_secret')}",
-          "    ]}",
-          "  }, function (err, res) {",
-          "    if (err || res.code !== 200) { console.error('Token request failed', err || res.code, res && res.text()); return; }",
-          "    pm.environment.set('access_token', res.json().access_token);",
-          "  });",
+          "// Hardened v1.1: URLs and client_id resolve from collection variables even without an environment.",
+          "// A fresh token is fetched on the first request of every run (never reuses a stale one).",
+          "if (pm.request.headers.get('Authorization')) {",
+          "  const needFetch = !pm.variables.get('__token_fetched_this_run');",
+          "  if (needFetch) {",
+          "    const tokenUrl = pm.variables.get('token_url');",
+          "    const cid = pm.variables.get('client_id');",
+          "    const csec = pm.variables.get('client_secret');",
+          "    if (!csec || csec.indexOf('PROVIDED') >= 0) { console.error('client_secret is not set — fill it in the environment.'); }",
+          "    if (tokenUrl.indexOf('.my.salesforce.com') < 0) { console.error('token_url is WRONG (' + tokenUrl + ') — must be the org My Domain, not test/login.salesforce.com'); }",
+          "    pm.sendRequest({",
+          "      url: tokenUrl,",
+          "      method: 'POST',",
+          "      header: {'Content-Type':'application/x-www-form-urlencoded'},",
+          "      body: { mode: 'urlencoded', urlencoded: [",
+          "        {key:'grant_type', value:'client_credentials'},",
+          "        {key:'client_id', value: cid},",
+          "        {key:'client_secret', value: csec}",
+          "      ]}",
+          "    }, function (err, res) {",
+          "      if (err || res.code !== 200) { console.error('TOKEN REQUEST FAILED', err || res.code, res && res.text()); return; }",
+          "      pm.variables.set('access_token', res.json().access_token);",
+          "      pm.variables.set('__token_fetched_this_run', 'yes');",
+          "      console.log('Token obtained OK from ' + tokenUrl);",
+          "    });",
+          "  }",
           "}"
         ]
       }
@@ -320,6 +332,20 @@
           "raw": "{\n  \"first_name\": \"Maria\",\n  \"last_name\": \"Gonzalez UAT6\",\n  \"phone\": \"0981000333\"\n}"
         }
       }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://condorsaci--qas.sandbox.my.salesforce.com"
+    },
+    {
+      "key": "token_url",
+      "value": "https://condorsaci--qas.sandbox.my.salesforce.com/services/oauth2/token"
+    },
+    {
+      "key": "client_id",
+      "value": "3MVG9vhwfqQnEVhCV7ZTiqF27KM0bwtG1WJUI6fGMDcV7SPom7h7wFiH4_6YPw7W8OjtNpq26QIsbMINQvde4"
     }
   ]
 }
