@@ -1,0 +1,325 @@
+{
+  "info": {
+    "_postman_id": "d5290fea-afd8-41ff-bbf6-18245945707c",
+    "name": "MGAgencia Leads API — UAT (Sandbox)",
+    "description": "UAT collection for the MGAgencia -> Salesforce Leads API v1 (functional spec section 8).\n\nSetup: import the environment file, fill in client_id and client_secret (delivered securely by Grupo Condor), then run the collection top to bottom with the Collection Runner.\n\nThe collection-level pre-request script obtains an OAuth 2.0 client-credentials token automatically and stores it in the environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (pm.request.headers.get('Authorization') && !pm.environment.get('access_token')) {",
+          "  pm.sendRequest({",
+          "    url: pm.environment.get('token_url'),",
+          "    method: 'POST',",
+          "    header: {'Content-Type':'application/x-www-form-urlencoded'},",
+          "    body: { mode: 'urlencoded', urlencoded: [",
+          "      {key:'grant_type', value:'client_credentials'},",
+          "      {key:'client_id', value: pm.environment.get('client_id')},",
+          "      {key:'client_secret', value: pm.environment.get('client_secret')}",
+          "    ]}",
+          "  }, function (err, res) {",
+          "    if (err || res.code !== 200) { console.error('Token request failed', err || res.code, res && res.text()); return; }",
+          "    pm.environment.set('access_token', res.json().access_token);",
+          "  });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "UAT-1 - Valid lead -> 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "const b = pm.response.json();",
+              "pm.test('status success', () => pm.expect(b.status).to.eql('success'));",
+              "pm.test('code LEAD_CREATED', () => pm.expect(b.code).to.eql('LEAD_CREATED'));",
+              "pm.test('integration_id is UUID', () => pm.expect(b.integration_id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/));",
+              "pm.test('duplicated false', () => pm.expect(b.duplicated).to.eql(false));",
+              "pm.environment.set('uat1_phone', JSON.parse(pm.request.body.raw).phone);",
+              "pm.environment.set('uat1_integration_id', b.integration_id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/services/apexrest/mgagencia/v1/leads",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "services",
+            "apexrest",
+            "mgagencia",
+            "v1",
+            "leads"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"Maria\",\n  \"last_name\": \"Gonzalez UAT1\",\n  \"phone\": \"0981{{$randomInt}}111\",\n  \"email\": \"uat1.{{$timestamp}}@example.com\",\n  \"branch_code\": \"ASUNCION\",\n  \"external_lead_id\": \"UAT-{{$timestamp}}-1\"\n}"
+        }
+      }
+    },
+    {
+      "name": "UAT-2 - Duplicate phone (595 format) -> 201 duplicated:true",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "const b = pm.response.json();",
+              "pm.test('duplicated true', () => pm.expect(b.duplicated).to.eql(true));",
+              "pm.test('still created (code LEAD_CREATED)', () => pm.expect(b.code).to.eql('LEAD_CREATED'));"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const p = pm.environment.get('uat1_phone') || '0981000111';",
+              "pm.environment.set('uat1_phone_no_zero', p.replace(/^0/, ''));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/services/apexrest/mgagencia/v1/leads",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "services",
+            "apexrest",
+            "mgagencia",
+            "v1",
+            "leads"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"Maria\",\n  \"last_name\": \"Gonzalez UAT2\",\n  \"phone\": \"595{{uat1_phone_no_zero}}\",\n  \"external_lead_id\": \"UAT-{{$timestamp}}-2\"\n}"
+        }
+      }
+    },
+    {
+      "name": "UAT-3 - Missing first_name and phone -> 422 all errors",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 422', () => pm.response.to.have.status(422));",
+              "const b = pm.response.json();",
+              "pm.test('code VALIDATION_ERROR', () => pm.expect(b.code).to.eql('VALIDATION_ERROR'));",
+              "const fields = (b.errors||[]).map(e => e.field);",
+              "pm.test('reports first_name', () => pm.expect(fields).to.include('first_name'));",
+              "pm.test('reports phone', () => pm.expect(fields).to.include('phone'));",
+              "pm.test('all problems in one response (>=2 errors)', () => pm.expect(b.errors.length).to.be.at.least(2));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/services/apexrest/mgagencia/v1/leads",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "services",
+            "apexrest",
+            "mgagencia",
+            "v1",
+            "leads"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"last_name\": \"Gonzalez UAT3\"\n}"
+        }
+      }
+    },
+    {
+      "name": "UAT-4 - Unknown branch_code -> 422 UNKNOWN_VALUE",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 422', () => pm.response.to.have.status(422));",
+              "const b = pm.response.json();",
+              "const codes = (b.errors||[]).map(e => e.code);",
+              "pm.test('UNKNOWN_VALUE for branch_code', () => pm.expect(codes).to.include('UNKNOWN_VALUE'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/services/apexrest/mgagencia/v1/leads",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "services",
+            "apexrest",
+            "mgagencia",
+            "v1",
+            "leads"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"Maria\",\n  \"last_name\": \"Gonzalez UAT4\",\n  \"phone\": \"0981{{$randomInt}}222\",\n  \"branch_code\": \"LUQUE\"\n}"
+        }
+      }
+    },
+    {
+      "name": "UAT-5 - Malformed JSON -> 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "pm.test('code MALFORMED_REQUEST', () => pm.expect(pm.response.json().code).to.eql('MALFORMED_REQUEST'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/services/apexrest/mgagencia/v1/leads",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "services",
+            "apexrest",
+            "mgagencia",
+            "v1",
+            "leads"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"first_name\": \"Maria\", "
+        }
+      }
+    },
+    {
+      "name": "UAT-6 - No token -> 401",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/services/apexrest/mgagencia/v1/leads",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "services",
+            "apexrest",
+            "mgagencia",
+            "v1",
+            "leads"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"Maria\",\n  \"last_name\": \"Gonzalez UAT6\",\n  \"phone\": \"0981000333\"\n}"
+        }
+      }
+    }
+  ]
+}
