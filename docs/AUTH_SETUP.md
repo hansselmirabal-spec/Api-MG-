@@ -109,3 +109,14 @@ Tokens expire per the org session policy; MGAgencia must request a new token on
 - [ ] Create the Connected App per §2–§4 in production.
 - [ ] Hand over credentials per §5.
 - [ ] Complete the admin follow-ups in `docs/ADMIN_FOLLOWUPS.md`.
+
+## Sandbox provisioning status (2026-09-01)
+
+- Connected App `MGAgencia API` is LIVE in `condor-qas`: client credentials flow enabled, run-as user `mgagencia.integration@condor.com.py.qas.mga`, permitted users = admin pre-authorized via permission set "Integración MGAgencia".
+- End-to-end verified: token from `https://condorsaci--qas.sandbox.my.salesforce.com/services/oauth2/token` (grant_type=client_credentials) → POST lead → 201.
+- Gotchas learned (apply to production provisioning):
+  1. The client-credentials TOKEN endpoint must be the org's My Domain URL — `test.salesforce.com` returns `invalid_grant: request not supported on this domain`.
+  2. The client-credentials run-as user CANNOT be set via Metadata API — set it in Setup UI (Connected App → Edit Policies → Client Credentials Flow → Run As).
+  3. `ConnectedApp.permissionSetName` in metadata expects the permission set LABEL ("Integración MGAgencia"), not the API name.
+  4. With "admin approved users are pre-authorized", the run-as user must hold a permission set/profile associated to the app, or the token call fails with `invalid_app_access`.
+- The consumer secret was delivered out-of-band; it is NOT stored in this repository (the committed ConnectedApp XML is sanitized).
