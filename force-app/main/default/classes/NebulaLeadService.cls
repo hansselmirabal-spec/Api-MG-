@@ -42,9 +42,13 @@ public with sharing class NebulaLeadService {
                 result.statusCode = 422;
                 result.response = NebulaLeadResponse.validationError(errors);
             } else {
+                // Normalize the phone to the org convention (flow DatosInicialesProspecto)
+                // BEFORE duplicate matching and BEFORE storing MobilePhone, so comparisons
+                // and the stored value match already-normalized existing Leads.
+                String normalizedPhone = NebulaPhoneNormalizer.normalize(request.phone);
                 NebulaDuplicateEvaluator.Result duplicate = NebulaDuplicateEvaluator.evaluate(
-                    request.phone, request.email, request.external_lead_id);
-                Lead lead = buildLead(request, config, duplicate);
+                    normalizedPhone, request.email, request.external_lead_id);
+                Lead lead = buildLead(request, normalizedPhone, config, duplicate);
                 insertLead(lead);
                 entry.status = 'CREATED';
                 entry.leadId = lead.Id;
@@ -89,12 +93,14 @@ public with sharing class NebulaLeadService {
     /**
      * @description Maps the request and fixed configuration values onto a Lead sObject.
      * @param request validated request DTO
+     * @param normalizedPhone phone already normalized to the org convention (595…)
      * @param config active integration configuration
      * @param duplicate duplicate evaluation outcome
      * @return unsaved Lead
      * @throws NebulaConfigurationException when the configured record type does not exist
      */
-    private static Lead buildLead(NebulaLeadRequest request, Nebula_Integration_Setting__mdt config,
+    private static Lead buildLead(NebulaLeadRequest request, String normalizedPhone,
+                                  Nebula_Integration_Setting__mdt config,
                                   NebulaDuplicateEvaluator.Result duplicate) {
         Schema.RecordTypeInfo recordType = Schema.SObjectType.Lead
             .getRecordTypeInfosByDeveloperName().get(config.Record_Type_DeveloperName__c);
@@ -106,7 +112,7 @@ public with sharing class NebulaLeadService {
             RecordTypeId = recordType.getRecordTypeId(),
             FirstName = request.first_name.trim(),
             LastName = request.last_name.trim(),
-            MobilePhone = request.phone.trim(),
+            MobilePhone = normalizedPhone,
             Email = String.isBlank(request.email) ? null : request.email.trim(),
             Nearest_Branch__c = NebulaBranchResolver.resolve(request.branch_code),
             External_Lead_Id__c = String.isBlank(request.external_lead_id)

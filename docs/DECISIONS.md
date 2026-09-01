@@ -77,3 +77,18 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
 - Decision: Nebüla may optionally send `branch_code` (catalog: `ASUNCION`, `CIUDAD_DEL_ESTE`, `CORONEL_OVIEDO`, `ENCARNACION`), resolved to the `Nearest_Branch__c` picklist. Unknown values → 422; omission is valid. "Branch" means a Cóndor branch; third-party dealers are out of scope for v1. `Sucursal_Seleccionada_Meta__c` is not used (Meta-flow specific).
 - Reason: the branch preference exists in the org and helps routing/reporting, but advertising leads often lack it.
 - Impact: resolver validates against a fixed 4-code catalog; closes the dealer/branch-semantics pending item.
+
+## 2026-08-31 — Phone normalization replicates the org flow (Decision, Phase 7)
+
+- Decision: the API normalizes `phone` before duplicate matching AND before storing `MobilePhone`, replicating the exact rule of the org flow `DatosInicialesProspecto` ("Limpiar Teléfono (Siempre)"): strip `+`, spaces, `-`, `(`, `)`; if the result starts with `0`, replace the leading `0` with `595`; otherwise pass through unchanged. Implemented as `NebulaPhoneNormalizer`.
+- Reason: the flow rewrites `MobilePhone` to `595…` after insert, so duplicate matching on the un-normalized value would miss same-person resubmissions in local `0981…` format, and the stored value would briefly diverge from org convention.
+- Evidence: flow formula `formula_5` (strip) + `formula_5_normalizado` (`IF(BEGINS(x,"0"), "595" & RIGHT(x, LEN(x)-1), x)`) retrieved from `condor-qas`.
+- Impact: `0981123456` and `595981123456` are now treated as the same number; foreign/odd input is only stripped, never rewritten (documented behavior).
+
+## 2026-08-31 — Authentication: OAuth 2.0 Client Credentials on a dedicated Connected App (Decision 8)
+
+- Decision: target production authentication is the **OAuth 2.0 Client Credentials** flow on a dedicated Connected App, run-as the least-privilege integration user (profile "Minimum Access - API Only Integrations" + permission set `Nebula_Integration`). Nebüla receives only a `client_id` / `client_secret`.
+- Interim: the sandbox Phase 7 E2E used SOAP session auth because a Connected App consumer secret must be created and revealed by a human admin in the UI; automation must never handle that secret.
+- Reason: client credentials is the standard server-to-server grant with no user interaction, no password/token sharing, and per-app IP and scope control; it maps cleanly onto a dedicated run-as user for least privilege and auditability.
+- Alternatives: username/password + security token over SOAP (rejected for production — shares a password, brittle with IP/token policy); JWT bearer (viable but requires Nebüla to hold a private key and manage certificate rotation).
+- Impact: production REQUIRES the Connected App + secret-handover procedure — see the admin runbook `docs/AUTH_SETUP.md`. `docs/API_SPEC.md` §2 updated: client credentials CONFIRMED as target (PENDING removed). Admin follow-ups tracked in `docs/ADMIN_FOLLOWUPS.md`.

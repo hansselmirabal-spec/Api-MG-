@@ -154,4 +154,24 @@ private class NebulaLeadServiceTest {
         System.assert(allowedKeys.containsAll(asMap.keySet()),
             'Success response only carries contract fields, got: ' + asMap.keySet());
     }
+    @IsTest
+    static void localFormatPhoneIsNormalizedAndMatchesExistingLead() {
+        // Same person: first submission already in org format, resubmission in local 0-format.
+        NebulaLeadService.process(buildRequest('595981123456', 'norm.person@example.com', 'neb-svc-norm1'));
+
+        Test.startTest();
+        NebulaLeadService.Result result = NebulaLeadService.process(
+            buildRequest('0981123456', 'other.norm@example.com', 'neb-svc-norm2'));
+        Test.stopTest();
+
+        System.assertEquals(201, result.statusCode, 'Created');
+        System.assertEquals(true, result.response.duplicated,
+            '0981123456 must match stored 595981123456 after normalization');
+        Lead duplicate = [SELECT MobilePhone, Duplicate_Reason__c FROM Lead
+                          WHERE External_Lead_Id__c = 'neb-svc-norm2'];
+        System.assertEquals('595981123456', duplicate.MobilePhone,
+            'Stored MobilePhone is normalized to the org convention before insert');
+        System.assert(duplicate.Duplicate_Reason__c.contains('MOBILE_PHONE_MATCH'),
+            'Reason records the phone signal, got: ' + duplicate.Duplicate_Reason__c);
+    }
 }

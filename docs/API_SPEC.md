@@ -25,18 +25,34 @@ request creates one Lead. There is no batch/bulk endpoint in v1.
 
 ## 2. Authentication
 
-**PENDING BUSINESS DECISION.** Proposed approach: Bearer token via OAuth 2.0
-client credentials grant. Nebüla would authenticate against a token endpoint
-using a client id/secret issued to them, then send the resulting token on
-every request:
+**CONFIRMED (Decision 8, 2026-08-31).** Bearer token via the **OAuth 2.0
+client credentials** grant, on a dedicated Connected App run-as the
+least-privilege integration user. Nebüla is issued a `client_id` /
+`client_secret`, exchanges them for an access token at the token endpoint,
+then sends the token on every request:
 
 ```
 Authorization: Bearer <access_token>
 ```
 
-This mechanism is not yet approved and must be confirmed and documented
-before Nebüla integrates against it. Requests without a valid token receive
-`401` (see §5).
+Admin setup (create the Connected App, enable client credentials, set the
+run-as user, IP policy, secret handover) is documented in the admin runbook
+`docs/AUTH_SETUP.md`. Requests without a valid token receive `401`; a valid
+token without the required permission set receives `403` (both handled by
+the platform before Apex runs — see §5).
+
+Token endpoints:
+
+- Sandbox: `https://test.salesforce.com/services/oauth2/token`
+  (or `https://<MyDomain>--qas.sandbox.my.salesforce.com/services/oauth2/token`)
+- Production: `https://<MyDomain>.my.salesforce.com/services/oauth2/token`
+
+```bash
+curl -s -X POST "https://<MyDomain>.my.salesforce.com/services/oauth2/token" \
+  -d "grant_type=client_credentials" \
+  -d "client_id=<CONSUMER_KEY>" \
+  -d "client_secret=<CONSUMER_SECRET>"
+```
 
 ---
 
