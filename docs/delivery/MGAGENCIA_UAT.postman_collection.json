@@ -47,6 +47,16 @@
       "name": "UAT-1 - Valid lead -> 201",
       "event": [
         {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Fixed-length phone (Paraguay mobile: 10 digits, 0981XXXXXX). {{$randomInt}} alone yields 1-4 digits and produced inconsistent lengths.",
+              "pm.variables.set('__uat1_phone', '0981' + String(Math.floor(100000 + Math.random() * 899999)));"
+            ]
+          }
+        },
+        {
           "listen": "test",
           "script": {
             "type": "text/javascript",
@@ -90,7 +100,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"first_name\": \"Maria\",\n  \"last_name\": \"Gonzalez UAT1\",\n  \"phone\": \"0981{{$randomInt}}111\",\n  \"email\": \"uat1.{{$timestamp}}@example.com\",\n  \"branch_code\": \"ASUNCION\",\n  \"external_lead_id\": \"UAT-{{$timestamp}}-1\"\n}"
+          "raw": "{\n  \"first_name\": \"Maria\",\n  \"last_name\": \"Gonzalez UAT1\",\n  \"phone\": \"{{__uat1_phone}}\",\n  \"email\": \"uat1.{{$timestamp}}@example.com\",\n  \"branch_code\": \"ASUNCION\",\n  \"external_lead_id\": \"UAT-{{$timestamp}}-1\"\n}"
         }
       }
     },
