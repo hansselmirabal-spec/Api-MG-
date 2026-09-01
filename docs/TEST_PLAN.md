@@ -1,7 +1,7 @@
 # TEST_PLAN
 
 Status: **EXECUTED — Phases 6 and 7** (2026-08-31 / 2026-09-01). Target org: sandbox `condor-qas`.
-Test classes: `NebulaLeadRestResourceTest`, `NebulaLeadServiceTest`
+Test classes: `MGAgenciaLeadRestResourceTest`, `MGAgenciaLeadServiceTest`
 (`force-app/main/default/classes/`). Behavior-first: every scenario asserts
 contract outcomes (status code, response schema, Lead/log persistence), not
 coverage alone. No `SeeAllData`; test data is isolated per method.
@@ -9,7 +9,7 @@ coverage alone. No `SeeAllData`; test data is isolated per method.
 Run command:
 
 ```
-sf apex run test --tests NebulaLeadRestResourceTest --tests NebulaLeadServiceTest \
+sf apex run test --tests MGAgenciaLeadRestResourceTest --tests MGAgenciaLeadServiceTest \
   -o condor-qas --result-format human --code-coverage --wait 20
 ```
 
@@ -17,7 +17,7 @@ sf apex run test --tests NebulaLeadRestResourceTest --tests NebulaLeadServiceTes
 
 | # | Scenario | Test method | Expected | Result |
 |---|---|---|---|---|
-| 1 | Successful creation: 201, response schema, UUID `integration_id`, Lead with configured values (record type `Fisica`, `Family__c` AUTOMÓVILES MG, `Brand__c` MG, Status `Formulario Nebüla`, LeadSource `Nebüla`, branch resolved), log `CREATED` linked to Lead | `createsLeadWithConfiguredValuesAndLogsIt` | 201 | PASS |
+| 1 | Successful creation: 201, response schema, UUID `integration_id`, Lead with configured values (record type `Fisica`, `Family__c` AUTOMÓVILES MG, `Brand__c` MG, Status `Formulario MGAgencia`, LeadSource `MGAgencia`, branch resolved), log `CREATED` linked to Lead | `createsLeadWithConfiguredValuesAndLogsIt` | 201 | PASS |
 | 2 | Missing `first_name` AND `phone`: all problems aggregated in one 422 (`REQUIRED` × 2), no Lead, log `VALIDATION_FAILED` | `missingRequiredFieldsReturnsAllErrorsAggregated` | 422 | PASS |
 | 3 | Invalid email format → `INVALID_FORMAT` | `invalidEmailFormatReturns422` | 422 | PASS |
 | 4 | Unknown `branch_code` → `UNKNOWN_VALUE`, no Lead | `unknownBranchCodeReturns422UnknownValue` | 422 | PASS |
@@ -41,14 +41,14 @@ OAuth/permission set before Apex runs. GET status endpoint, `campaign_code`,
 
 | Class | Coverage |
 |---|---|
-| `NebulaLeadRestResource` | 100% |
-| `NebulaLeadService` | 97% |
-| `NebulaLeadValidator` | 93% |
-| `NebulaLeadRequest` | 90% |
-| `NebulaLeadResponse` | 100% |
-| `NebulaBranchResolver` | 100% |
-| `NebulaDuplicateEvaluator` | 94% |
-| `NebulaIntegrationLogger` | 100% |
+| `MGAgenciaLeadRestResource` | 100% |
+| `MGAgenciaLeadService` | 97% |
+| `MGAgenciaLeadValidator` | 93% |
+| `MGAgenciaLeadRequest` | 90% |
+| `MGAgenciaLeadResponse` | 100% |
+| `MGAgenciaBranchResolver` | 100% |
+| `MGAgenciaDuplicateEvaluator` | 94% |
+| `MGAgenciaIntegrationLogger` | 100% |
 | Exception classes (empty bodies) | 0% — no executable lines |
 
 ## 3. Org-automation interference found (and how it was handled)
@@ -57,19 +57,19 @@ Tests run against real org automation (no mocking of flows/triggers). Findings:
 
 1. **FLS after Metadata API deploy**: deployed fields carry no field-level
    security for any profile — even the admin gets none. All USER_MODE DML
-   failed until the `Nebula_Integration` permission set (which carries the
+   failed until the `MGAgencia_Integration` permission set (which carries the
    FLS) was assigned to the running user. Any user calling the API (or
    running these tests) needs that permission set.
 2. **VR `ValidarTareaEstadoContactado`** exempts `Formulario Meta` /
-   `Prospecto` but not the new `Formulario Nebüla` status, blocking every
+   `Prospecto` but not the new `Formulario MGAgencia` status, blocking every
    API insert. Handled in Apex by setting `Estatus__c = 'No contactado'`
    (factually correct for a fresh advertising lead, and the state the rule
    itself treats as pre-contact). **Follow-up for the Salesforce admin**:
-   add `NOT(ISPICKVAL(Status, 'Formulario Nebüla'))` to the rule, mirroring
+   add `NOT(ISPICKVAL(Status, 'Formulario MGAgencia'))` to the rule, mirroring
    the Meta exemption — otherwise later manual edits of an uncontacted
-   Nebüla lead may still trip the rule once `Estatus__c` changes.
+   MGAgencia lead may still trip the rule once `Estatus__c` changes.
 3. **Flow "Crear Tarea si No Contactado"** creates a Task owned by the
-   Lead's owner. With ownership routed to the `Nebula_Leads` queue, inserts
+   Lead's owner. With ownership routed to the `MGAgencia_Leads` queue, inserts
    failed with `Queue not associated with this SObject type`. Fixed by
    adding `Task` to the queue's supported objects (our Phase 4 component).
 4. **Flow `DatosInicialesProspecto`** upper-cases names after insert —
@@ -88,21 +88,21 @@ Tests run against real org automation (no mocking of flows/triggers). Findings:
 
 ### 5.1 Phone normalization (deployed)
 
-`NebulaPhoneNormalizer` replicates the org flow `DatosInicialesProspecto`
+`MGAgenciaPhoneNormalizer` replicates the org flow `DatosInicialesProspecto`
 ("Limpiar Teléfono (Siempre)") exactly: strip `+`, spaces, `-`, `(`, `)`;
 leading `0` → `595` + rest; anything else passes through unchanged
 (documented — foreign/odd input is never rewritten). Applied in
-`NebulaLeadService` BEFORE duplicate matching and BEFORE storing
-`MobilePhone`. New tests: `NebulaPhoneNormalizerTest` (5 unit tests) and
-`NebulaLeadServiceTest.localFormatPhoneIsNormalizedAndMatchesExistingLead`.
+`MGAgenciaLeadService` BEFORE duplicate matching and BEFORE storing
+`MobilePhone`. New tests: `MGAgenciaPhoneNormalizerTest` (5 unit tests) and
+`MGAgenciaLeadServiceTest.localFormatPhoneIsNormalizedAndMatchesExistingLead`.
 Full suite after deploy: run `707TH0000263Pmg` — **21/21 PASS**, coverage:
-`NebulaPhoneNormalizer` 100%, all other integration classes unchanged
+`MGAgenciaPhoneNormalizer` 100%, all other integration classes unchanged
 (90–100%).
 
 ### 5.2 E2E matrix — real REST over HTTPS against `condor-qas`
 
 Executed with curl against
-`https://condorsaci--qas.sandbox.my.salesforce.com/services/apexrest/nebula/v1/leads`.
+`https://condorsaci--qas.sandbox.my.salesforce.com/services/apexrest/mgagencia/v1/leads`.
 Auth note: the least-privilege integration user could not SOAP-login from the
 test IP (`LOGIN_MUST_USE_SECURITY_TOKEN`; adding a trusted IP range / reading
 the token email / deploying a temp Connected App all require an admin — see
@@ -118,29 +118,29 @@ configuration (§5.3) and by the Apex suite running under the permission set.
 | d | Unknown `branch_code` | `branch_code: LUQUE` | 422 | `VALIDATION_ERROR`, `UNKNOWN_VALUE` on `branch_code` | PASS |
 | e | Malformed JSON | `{not-json` | 400 | `MALFORMED_REQUEST` | PASS |
 | f | No/invalid token | no `Authorization` header | 401 | platform `INVALID_SESSION_ID` (Apex never runs) | PASS |
-| g | Authorized user without `Nebula_Integration` permission set | not executed live | 403 | verified-by-configuration: Apex class access to `NebulaLeadRestResource` is granted ONLY through the `Nebula_Integration` permission set; platform returns 403 for users without it | VERIFIED-BY-CONFIG |
+| g | Authorized user without `MGAgencia_Integration` permission set | not executed live | 403 | verified-by-configuration: Apex class access to `MGAgenciaLeadRestResource` is granted ONLY through the `MGAgencia_Integration` permission set; platform returns 403 for users without it | VERIFIED-BY-CONFIG |
 
 SOQL verification of scenario a/b Leads: record type `Fisica`,
-`Family__c = AUTOMÓVILES MG`, `Brand__c = MG`, `Status = Formulario Nebüla`,
-`LeadSource = Nebüla`, `Nearest_Branch__c = ASUNCIÓN`, owner = queue
-"Nebüla Leads" (assignment rule entry acted as designed; no other automation
+`Family__c = AUTOMÓVILES MG`, `Brand__c = MG`, `Status = Formulario MGAgencia`,
+`LeadSource = MGAgencia`, `Nearest_Branch__c = ASUNCIÓN`, owner = queue
+"MGAgencia Leads" (assignment rule entry acted as designed; no other automation
 re-routed the owner). Integration log records `CREATED`/201 linked to both
 Leads; 422/400 attempts logged as `VALIDATION_FAILED`/`ERROR` with no Lead.
 
 Cleanup: PENDING USER APPROVAL — the deletion commands (2 E2E Leads
 `00QTH00000Spms52AB`, `00QTH00000Spmth2AB` and 10 E2E
-`Nebula_Integration_Log__c` records created 2026-09-01) were blocked by the
+`MGAgencia_Integration_Log__c` records created 2026-09-01) were blocked by the
 local permission policy for destructive org DML. Run when approved:
-`sf apex run` with `delete [SELECT Id FROM Nebula_Integration_Log__c WHERE
+`sf apex run` with `delete [SELECT Id FROM MGAgencia_Integration_Log__c WHERE
 CreatedDate = 2026-09-01]; delete [SELECT Id FROM Lead WHERE
 External_Lead_Id__c LIKE 'e2e-%-1788258717'];` against `condor-qas`.
 
 ### 5.3 Integration user (least privilege)
 
-`nebula.integration@condor.com.py.qas.nebula` — profile
+`mgagencia.integration@condor.com.py.qas.mga` — profile
 "Minimum Access - API Only Integrations" (license "Salesforce Integration" +
-PSL "Salesforce API Integration"), permission set `Nebula_Integration`.
+PSL "Salesforce API Integration"), permission set `MGAgencia_Integration`.
 Verified by SOQL: `PermissionsModifyAllData = false`,
 `PermissionsViewAllData = false`, `PermissionsAuthorApex = false`,
 `PermissionsApiEnabled = true`; only assignments are the profile-owned
-permission set and `Nebula_Integration`.
+permission set and `MGAgencia_Integration`.

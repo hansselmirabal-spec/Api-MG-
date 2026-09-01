@@ -1,20 +1,20 @@
-# API_SPEC — Nebüla → Lead Integration (v1 draft)
+# API_SPEC — MGAgencia → Lead Integration (v1 draft)
 
 Status: **DRAFT — Phase 3**. Consumer-facing contract. This document does not
 describe Salesforce implementation details, internal object names beyond the
 public field names below, or Record IDs. Several fields and behaviors are
 marked **PENDING BUSINESS DECISION** and must not be treated as final; see
-§9 "Open questions for Nebüla".
+§9 "Open questions for MGAgencia".
 
 ---
 
 ## 1. Overview and versioning
 
-Nebüla sends advertising Leads to us via a single HTTPS REST endpoint. Each
+MGAgencia sends advertising Leads to us via a single HTTPS REST endpoint. Each
 request creates one Lead. There is no batch/bulk endpoint in v1.
 
 - **Version**: v1.
-- **Endpoint**: `POST https://<salesforce-domain>/services/apexrest/nebula/v1/leads`
+- **Endpoint**: `POST https://<salesforce-domain>/services/apexrest/mgagencia/v1/leads`
   (implemented Apex REST path; the sandbox/production host is shared before UAT).
 - **Content type**: `application/json` for both request and response.
 - **Transport**: HTTPS only.
@@ -27,7 +27,7 @@ request creates one Lead. There is no batch/bulk endpoint in v1.
 
 **CONFIRMED (Decision 8, 2026-08-31).** Bearer token via the **OAuth 2.0
 client credentials** grant, on a dedicated Connected App run-as the
-least-privilege integration user. Nebüla is issued a `client_id` /
+least-privilege integration user. MGAgencia is issued a `client_id` /
 `client_secret`, exchanges them for an access token at the token endpoint,
 then sends the token on every request:
 
@@ -63,14 +63,14 @@ array/batch wrapping).
 
 | Field | Type | Required | Status | Constraints / notes |
 |---|---|---|---|---|
-| `external_lead_id` | string | Proposed required | **PENDING BUSINESS DECISION** | Unique identifier Nebüla assigns to each Lead. Whether Nebüla can send this, and how it is used for idempotency/duplicates, is not yet confirmed. |
+| `external_lead_id` | string | Proposed required | **PENDING BUSINESS DECISION** | Unique identifier MGAgencia assigns to each Lead. Whether MGAgencia can send this, and how it is used for idempotency/duplicates, is not yet confirmed. |
 | `first_name` | string | Required | Confirmed | Non-empty after trimming. |
 | `last_name` | string | Required | Confirmed | Non-empty after trimming. |
 | `phone` | string | Required | Confirmed | Paraguayan mobile number. Expected format `595` + 9 digits (e.g. `595981234567`). Other formats may be normalized or rejected — final normalization behavior is an implementation detail, not part of this contract. |
 | `email` | string | Optional | Confirmed | Standard email format when present. |
-| `campaign_code` | string | Unresolved | **PENDING BUSINESS DECISION** | How Nebüla identifies advertising campaigns is not yet defined. Candidate: an external code that Salesforce resolves internally. Do not treat as available until confirmed. |
+| `campaign_code` | string | Unresolved | **PENDING BUSINESS DECISION** | How MGAgencia identifies advertising campaigns is not yet defined. Candidate: an external code that Salesforce resolves internally. Do not treat as available until confirmed. |
 | `branch_code` | string | Optional | Confirmed | Cóndor branch preferred by the customer. Approved catalog: `ASUNCION`, `CIUDAD_DEL_ESTE`, `CORONEL_OVIEDO`, `ENCARNACION`. An unknown value is rejected with 422 (`UNKNOWN_VALUE`); omitting the field is valid. |
-| `interest_model` | string | Unresolved | **PENDING BUSINESS DECISION** | Vehicle of interest (brand/model/version/year). The catalog of accepted values will be provided by us once confirmed; Nebüla must not send free-form values ahead of that catalog. |
+| `interest_model` | string | Unresolved | **PENDING BUSINESS DECISION** | Vehicle of interest (brand/model/version/year). The catalog of accepted values will be provided by us once confirmed; MGAgencia must not send free-form values ahead of that catalog. |
 
 ### 3.1 Example request
 
@@ -195,7 +195,7 @@ This behavior depends on the `campaign_code` catalog, still
 Duplicate Leads are **never rejected**. If an incoming Lead matches an
 existing, non-lost Lead (current rule: matching phone or email — see
 `docs/DECISIONS.md`), the Lead is still created and the response sets
-`"duplicated": true`. Nebüla does not need to take any corrective action;
+`"duplicated": true`. MGAgencia does not need to take any corrective action;
 the duplicate is flagged internally for reporting.
 
 ```json
@@ -213,7 +213,7 @@ the duplicate is flagged internally for reporting.
 ## 7. Idempotency
 
 **PENDING BUSINESS DECISION**, tied to `external_lead_id` (§3, §9). If
-Nebüla is confirmed able to send a stable `external_lead_id` per Lead, that
+MGAgencia is confirmed able to send a stable `external_lead_id` per Lead, that
 value is the intended key for future idempotent-retry behavior (e.g. safely
 resubmitting after a timeout without creating a second Lead). Until
 `external_lead_id` is confirmed, every accepted request creates a new Lead —
@@ -223,13 +223,13 @@ retries are not deduplicated.
 
 ## 8. Rate and volume expectations
 
-**PENDING.** Expected request volume and rate limits from Nebüla have not
+**PENDING.** Expected request volume and rate limits from MGAgencia have not
 been provided. No throttling behavior is documented yet; this section will
-be completed once Nebüla shares expected peak/average send rates.
+be completed once MGAgencia shares expected peak/average send rates.
 
 ---
 
-## 9. Open questions for Nebüla
+## 9. Open questions for MGAgencia
 
 1. Can you send a unique identifier per Lead (`external_lead_id`)? If so,
    what are its format and uniqueness guarantees?

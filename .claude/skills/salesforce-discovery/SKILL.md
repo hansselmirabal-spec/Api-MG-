@@ -8,7 +8,7 @@ metadata:
 ---
 
 ## Activation Contract
-Load before designing mappings, API fields, validation, or Apex behavior for Nebüla Lead creation.
+Load before designing mappings, API fields, validation, or Apex behavior for MGAgencia Lead creation.
 
 ## Hard Rules
 - Read `../../../CLAUDE.md` and `../../../docs/CONTEXT.md` first.

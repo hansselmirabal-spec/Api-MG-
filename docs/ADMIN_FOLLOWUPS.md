@@ -1,4 +1,4 @@
-# ADMIN_FOLLOWUPS — Salesforce admin actions pending for Nebüla
+# ADMIN_FOLLOWUPS — Salesforce admin actions pending for MGAgencia
 
 Actions that require a human Salesforce administrator (UI access, org-wide
 security, or secret handling). None are blockers for the Apex layer, which is
@@ -8,12 +8,12 @@ cutover and for hardening the sandbox.
 ## 1. Validation rule `ValidarTareaEstadoContactado` exemption (carried from Phase 6)
 
 - **What**: the VR exempts `Formulario Meta` / `Prospecto` but not the new
-  `Formulario Nebüla` status, so it blocks API inserts. The API works around
+  `Formulario MGAgencia` status, so it blocks API inserts. The API works around
   it today by setting `Estatus__c = 'No contactado'` (the factual pre-contact
   state), which the rule treats as valid.
-- **Action**: add `NOT(ISPICKVAL(Status, 'Formulario Nebüla'))` to the rule,
+- **Action**: add `NOT(ISPICKVAL(Status, 'Formulario MGAgencia'))` to the rule,
   mirroring the Meta exemption. Otherwise a later manual edit of an
-  uncontacted Nebüla lead may trip the rule once `Estatus__c` changes.
+  uncontacted MGAgencia lead may trip the rule once `Estatus__c` changes.
 - **Priority**: medium (workaround holds for creation; risk is later edits).
 
 ## 2. OAuth 2.0 Client Credentials Connected App (Decision 8)
@@ -22,15 +22,15 @@ cutover and for hardening the sandbox.
 - **Action**: create the Connected App, enable client credentials, set the
   run-as integration user, decide IP policy, and hand over the consumer
   secret over an approved channel. Automation must never touch the secret.
-- **Priority**: high — required before Nebüla integrates against production.
+- **Priority**: high — required before MGAgencia integrates against production.
 
 ## 3. Production integration user
 
-- **What**: the sandbox user `nebula.integration@condor.com.py.qas.nebula`
+- **What**: the sandbox user `mgagencia.integration@condor.com.py.qas.mga`
   exists; production needs its equivalent.
 - **Action**: create a production user with profile
   "Minimum Access - API Only Integrations", permission set
-  `Nebula_Integration`, and permission set license "Salesforce API
+  `MGAgencia_Integration`, and permission set license "Salesforce API
   Integration". No admin permissions.
 - **Priority**: high — required for production cutover.
 

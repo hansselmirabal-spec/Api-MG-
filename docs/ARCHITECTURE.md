@@ -1,6 +1,6 @@
 # ARCHITECTURE
 
-Nebüla → Salesforce Lead Integration — v1 architecture map.
+MGAgencia → Salesforce Lead Integration — v1 architecture map.
 
 Status: DRAFT — Phase 1 (Salesforce discovery) in progress. This document defines
 boundaries and sequencing; it does not define field mappings, catalog values,
@@ -14,9 +14,9 @@ throughout and consolidated in §11.
 - **Scope**: v1 only. Direct Apex REST exposed from Salesforce; no middleware,
   no external API Gateway. Any change to this boundary requires an explicit,
   separately approved decision (see `docs/DECISIONS.md`, 2026-08-26).
-- **Direction**: Nebüla (advertising Lead source) → Salesforce REST endpoint →
-  Lead creation → response to Nebüla. Salesforce is the system of record for
-  the Lead; Nebüla is the API consumer only.
+- **Direction**: MGAgencia (advertising Lead source) → Salesforce REST endpoint →
+  Lead creation → response to MGAgencia. Salesforce is the system of record for
+  the Lead; MGAgencia is the API consumer only.
 - **Environments**: `condor-qas` sandbox is the default and only target for
   development, discovery, and testing. `mi-org` (production) requires explicit
   confirmation before any deployment or write.
@@ -40,18 +40,18 @@ rather than fully expanded in Mermaid, to keep the happy path legible.
 
 ```mermaid
 sequenceDiagram
-    participant Nebula as Nebüla
-    participant REST as NebulaLeadRestResource (@RestResource)
-    participant Svc as NebulaLeadService
-    participant Val as NebulaLeadValidator
-    participant DealerRes as NebulaDealerResolver
-    participant CampRes as NebulaCampaignResolver
-    participant Dup as NebulaLeadDuplicateEvaluator
+    participant MGAgencia as MGAgencia
+    participant REST as MGAgenciaLeadRestResource (@RestResource)
+    participant Svc as MGAgenciaLeadService
+    participant Val as MGAgenciaLeadValidator
+    participant DealerRes as MGAgenciaDealerResolver
+    participant CampRes as MGAgenciaCampaignResolver
+    participant Dup as MGAgenciaLeadDuplicateEvaluator
     participant Lead as Lead (DML)
-    participant Log as NebulaIntegrationLogWriter
-    participant Resp as NebulaLeadResponseBuilder
+    participant Log as MGAgenciaIntegrationLogWriter
+    participant Resp as MGAgenciaLeadResponseBuilder
 
-    Nebula->>REST: POST /services/apexrest/NebulaLead/v1 (JSON)
+    MGAgencia->>REST: POST /services/apexrest/MGAgenciaLead/v1 (JSON)
     REST->>REST: parse body into request DTO
     REST->>Svc: process(requestDto)
     Svc->>Val: validate(requestDto)
@@ -68,7 +68,7 @@ sequenceDiagram
     Log-->>Svc: log record persisted
     Svc-->>REST: result (integrationId, status)
     REST->>Resp: build success response
-    REST-->>Nebula: 201 JSON {code, status, message, integrationId}
+    REST-->>MGAgencia: 201 JSON {code, status, message, integrationId}
 ```
 
 **Branch outcomes not drawn above** (each still writes an integration log
@@ -92,40 +92,40 @@ entry before responding, per CLAUDE.md §Logging):
 
 All class names below are **PROPOSED** — naming convention only, not yet
 implemented, subject to review by `salesforce-developer` at Phase 5. Prefix
-`Nebula` used consistently to namespace the integration.
+`MGAgencia` used consistently to namespace the integration.
 
 ```mermaid
 flowchart TB
     subgraph Transport["REST Layer — transport only"]
-        A["NebulaLeadRestResource<br/>@RestResource(urlMapping='/NebulaLead/v1/*')<br/>PROPOSED"]
+        A["MGAgenciaLeadRestResource<br/>@RestResource(urlMapping='/MGAgenciaLead/v1/*')<br/>PROPOSED"]
     end
     subgraph Parsing["Request DTO / Parsing"]
-        C["NebulaLeadRequest<br/>DTO + JSON deserialization<br/>PROPOSED"]
+        C["MGAgenciaLeadRequest<br/>DTO + JSON deserialization<br/>PROPOSED"]
     end
     subgraph AppService["Application Service — orchestration"]
-        B["NebulaLeadService<br/>PROPOSED"]
+        B["MGAgenciaLeadService<br/>PROPOSED"]
     end
     subgraph Validation["Validation"]
-        D["NebulaLeadValidator<br/>returns all problems, not first-fail<br/>PROPOSED"]
+        D["MGAgenciaLeadValidator<br/>returns all problems, not first-fail<br/>PROPOSED"]
     end
     subgraph Resolvers["Resolvers / Mapping — External ID or Custom Metadata"]
-        E["NebulaDealerResolver<br/>PROPOSED"]
-        F["NebulaCampaignResolver<br/>PROPOSED"]
+        E["MGAgenciaDealerResolver<br/>PROPOSED"]
+        F["MGAgenciaCampaignResolver<br/>PROPOSED"]
     end
     subgraph DupEval["Duplicate Evaluator"]
-        G["NebulaLeadDuplicateEvaluator<br/>rule: PENDING BUSINESS DECISION<br/>PROPOSED"]
+        G["MGAgenciaLeadDuplicateEvaluator<br/>rule: PENDING BUSINESS DECISION<br/>PROPOSED"]
     end
     subgraph LeadBuild["Lead Builder / DML"]
-        H["NebulaLeadBuilder<br/>maps DTO -> Lead sObject<br/>PROPOSED"]
+        H["MGAgenciaLeadBuilder<br/>maps DTO -> Lead sObject<br/>PROPOSED"]
     end
     subgraph LoggingL["Integration Log Writer"]
-        I["NebulaIntegrationLogWriter<br/>PROPOSED"]
+        I["MGAgenciaIntegrationLogWriter<br/>PROPOSED"]
     end
     subgraph RespBuild["Response Builder"]
-        J["NebulaLeadResponseBuilder<br/>PROPOSED"]
+        J["MGAgenciaLeadResponseBuilder<br/>PROPOSED"]
     end
     subgraph Exceptions["Custom Exceptions"]
-        K["NebulaValidationException<br/>NebulaResolutionException<br/>NebulaIntegrationException<br/>PROPOSED"]
+        K["MGAgenciaValidationException<br/>MGAgenciaResolutionException<br/>MGAgenciaIntegrationException<br/>PROPOSED"]
     end
 
     A --> C
@@ -146,13 +146,13 @@ flowchart TB
 
 **Boundary rules**:
 
-- `NebulaLeadRestResource` never contains business logic: parse → delegate →
+- `MGAgenciaLeadRestResource` never contains business logic: parse → delegate →
   serialize response, per CLAUDE.md §REST Layer.
-- `NebulaLeadService` is the only orchestrator; sole caller of the validator,
+- `MGAgenciaLeadService` is the only orchestrator; sole caller of the validator,
   resolvers, duplicate evaluator, builder, and log writer.
 - Resolvers never hardcode mapping values in Apex; they read from External ID
   fields or Custom Metadata (final strategy: see §4 and §11).
-- `NebulaLeadDuplicateEvaluator` computes a flag/signal only; it never blocks
+- `MGAgenciaLeadDuplicateEvaluator` computes a flag/signal only; it never blocks
   Lead creation. All SOQL/DML in resolvers and the builder must be bulk-safe
   (no SOQL/DML inside loops), even though v1 is single-record — see §8.
 
@@ -166,18 +166,18 @@ Phase 4.
 
 | Metadata item | Purpose | Notes |
 | --- | --- | --- |
-| Integration log custom object (e.g. `Nebula_Integration_Log__c`) | Traceability record per inbound request (§7) | Field sketch below — no PII beyond what CLAUDE.md permits |
-| Duplicate-flag field on `Lead` (e.g. `Nebula_Is_Duplicate__c`, `Nebula_Duplicate_Signal__c`) | Marks a Lead created despite a detected duplicate match | Detection rule is **PENDING BUSINESS DECISION** |
-| External-code field(s) for dealer resolution (e.g. External ID on Dealer object, or Custom Metadata row keyed by dealer code) | Resolve Nebüla dealer code → internal Dealer reference without exposing Record IDs | Exact object/field is **PENDING DISCOVERY** (Phase 1) |
-| External-code field(s) for campaign resolution (e.g. External ID on `Campaign`, or Custom Metadata) | Resolve Nebüla campaign code → internal Campaign reference | Exact object/field is **PENDING DISCOVERY**; campaign identification approach itself is **PENDING BUSINESS DECISION** (CLAUDE.md) |
-| Custom Metadata Type for configuration (e.g. `Nebula_Integration_Setting__mdt`) | Externalize environment-dependent values (endpoint toggles, feature flags) — avoid hardcoded values per CLAUDE.md §5 | Contents to be defined once Phase 3/4 requirements are known |
-| Permission Set for the integration user (e.g. `Nebula_Integration_User`) | Least-privilege access: API Enabled, Apex class access, Lead create/read, field-level security, Dealer/Campaign lookup, integration log write | No System Administrator profile; see §9 |
-| Connected App / authentication mechanism | Authenticates Nebüla's inbound calls | **PENDING BUSINESS DECISION** — see §5 note and §11; not designed here |
+| Integration log custom object (e.g. `MGAgencia_Integration_Log__c`) | Traceability record per inbound request (§7) | Field sketch below — no PII beyond what CLAUDE.md permits |
+| Duplicate-flag field on `Lead` (e.g. `MGAgencia_Is_Duplicate__c`, `MGAgencia_Duplicate_Signal__c`) | Marks a Lead created despite a detected duplicate match | Detection rule is **PENDING BUSINESS DECISION** |
+| External-code field(s) for dealer resolution (e.g. External ID on Dealer object, or Custom Metadata row keyed by dealer code) | Resolve MGAgencia dealer code → internal Dealer reference without exposing Record IDs | Exact object/field is **PENDING DISCOVERY** (Phase 1) |
+| External-code field(s) for campaign resolution (e.g. External ID on `Campaign`, or Custom Metadata) | Resolve MGAgencia campaign code → internal Campaign reference | Exact object/field is **PENDING DISCOVERY**; campaign identification approach itself is **PENDING BUSINESS DECISION** (CLAUDE.md) |
+| Custom Metadata Type for configuration (e.g. `MGAgencia_Integration_Setting__mdt`) | Externalize environment-dependent values (endpoint toggles, feature flags) — avoid hardcoded values per CLAUDE.md §5 | Contents to be defined once Phase 3/4 requirements are known |
+| Permission Set for the integration user (e.g. `MGAgencia_Integration_User`) | Least-privilege access: API Enabled, Apex class access, Lead create/read, field-level security, Dealer/Campaign lookup, integration log write | No System Administrator profile; see §9 |
+| Connected App / authentication mechanism | Authenticates MGAgencia's inbound calls | **PENDING BUSINESS DECISION** — see §5 note and §11; not designed here |
 
 **Integration log field sketch** (no PII, no secrets, indicative only,
 finalized at Phase 4): `Integration_Id__c` (external identifier, §5),
 `Received_At__c` / `Processing_Duration_Ms__c`, `Origin__c` (caller/source,
-not raw IP/PII unless required), `External_Lead_Id__c` (if the Nebüla
+not raw IP/PII unless required), `External_Lead_Id__c` (if the MGAgencia
 identifier decision is confirmed — §11), `Result__c` (created /
 created-duplicate / validation-failed / error), `Lead__c` (lookup to the
 created Lead, internal use only, never returned), `Validation_Problems__c`
@@ -188,7 +188,7 @@ raw exception message), `Response_Code_Sent__c` (HTTP status returned).
 
 ## 5. Identifier strategy
 
-Salesforce Record IDs are never returned to Nebüla (CLAUDE.md §Core
+Salesforce Record IDs are never returned to MGAgencia (CLAUDE.md §Core
 principles, §API behavior). An **integration identifier** is returned instead.
 Two implementation options, both viable, trade-off noted — final choice
 deferred to Phase 3/4 once discovery confirms log-object and Lead
@@ -196,12 +196,12 @@ External-ID field availability:
 
 | Option | Description | Trade-offs |
 | --- | --- | --- |
-| **A — UUID on log record** | `NebulaLeadService` generates a UUID (or Salesforce `Crypto.getAes...`/`generateUUIDString`) at request time, stores it as `Integration_Id__c` on the integration log record, returns it to Nebüla. | Decouples identifier from Lead lifecycle; survives even if Lead creation later needs correction. Requires a lookup from `Integration_Id__c` → log → Lead if a future status-query endpoint is approved. No Salesforce-native uniqueness enforcement without an explicit unique field/validation rule. |
-| **B — External field on Lead** | Same UUID (or Nebüla-supplied `external_lead_id`, if confirmed) is stored directly as an External ID field on `Lead`, and returned as the integration identifier. | Simpler single-lookup path if a status-query endpoint is later approved. Couples the identifier to Lead existence — awkward if a request fails validation and no Lead is created (no natural place to store the identifier). |
+| **A — UUID on log record** | `MGAgenciaLeadService` generates a UUID (or Salesforce `Crypto.getAes...`/`generateUUIDString`) at request time, stores it as `Integration_Id__c` on the integration log record, returns it to MGAgencia. | Decouples identifier from Lead lifecycle; survives even if Lead creation later needs correction. Requires a lookup from `Integration_Id__c` → log → Lead if a future status-query endpoint is approved. No Salesforce-native uniqueness enforcement without an explicit unique field/validation rule. |
+| **B — External field on Lead** | Same UUID (or MGAgencia-supplied `external_lead_id`, if confirmed) is stored directly as an External ID field on `Lead`, and returned as the integration identifier. | Simpler single-lookup path if a status-query endpoint is later approved. Couples the identifier to Lead existence — awkward if a request fails validation and no Lead is created (no natural place to store the identifier). |
 
 Recommendation for Phase 3 evaluation: **Option A** (UUID on log record) is architecturally cleaner — it works uniformly across all outcomes (success, duplicate, even failed requests, if traceability requires logging failed identifiers too — §7), independent of whether a Lead ends up existing. This is a proposal, not a locked decision.
 
-**Related pending item**: whether Nebüla can supply its own `external_lead_id` is **PENDING BUSINESS DECISION** (CLAUDE.md, "Nebüla Lead Identifier"). If confirmed, it becomes a correlation field on the log record (and possibly the Lead) in addition to — not instead of — the Salesforce-generated integration identifier, unless business decides otherwise.
+**Related pending item**: whether MGAgencia can supply its own `external_lead_id` is **PENDING BUSINESS DECISION** (CLAUDE.md, "MGAgencia Lead Identifier"). If confirmed, it becomes a correlation field on the log record (and possibly the Lead) in addition to — not instead of — the Salesforce-generated integration identifier, unless business decides otherwise.
 
 ---
 
@@ -213,12 +213,12 @@ exception messages, no internal IDs in any response body.
 
 | Code | Condition | Layer that raises it |
 | --- | --- | --- |
-| `201` | Lead successfully created (including created-and-flagged-duplicate) | `NebulaLeadRestResource`, after service success |
-| `400` | Malformed/unparseable request body | `NebulaLeadRestResource` parsing step, before reaching the service |
+| `201` | Lead successfully created (including created-and-flagged-duplicate) | `MGAgenciaLeadRestResource`, after service success |
+| `400` | Malformed/unparseable request body | `MGAgenciaLeadRestResource` parsing step, before reaching the service |
 | `401` | Authentication failure | Platform/auth layer, before the service executes — mechanism **PENDING BUSINESS DECISION** |
-| `403` | Authenticated but unauthorized (permission set gap) | Platform/auth layer or explicit check in `NebulaLeadService` |
-| `422` | Business validation failure: missing/invalid mandatory fields, unresolved dealer/campaign code | `NebulaLeadValidator`, `NebulaDealerResolver`, `NebulaCampaignResolver` — surfaced via `NebulaValidationException` / `NebulaResolutionException` |
-| `500` | Unexpected Salesforce processing error (DML failure, uncaught exception) | Caught centrally in `NebulaLeadRestResource`, wrapping `NebulaIntegrationException` |
+| `403` | Authenticated but unauthorized (permission set gap) | Platform/auth layer or explicit check in `MGAgenciaLeadService` |
+| `422` | Business validation failure: missing/invalid mandatory fields, unresolved dealer/campaign code | `MGAgenciaLeadValidator`, `MGAgenciaDealerResolver`, `MGAgenciaCampaignResolver` — surfaced via `MGAgenciaValidationException` / `MGAgenciaResolutionException` |
+| `500` | Unexpected Salesforce processing error (DML failure, uncaught exception) | Caught centrally in `MGAgenciaLeadRestResource`, wrapping `MGAgenciaIntegrationException` |
 
 Every response body follows the structured shape required by CLAUDE.md:
 `code`, `status`, `message`, and `integrationId` when available (absent on
@@ -231,11 +231,11 @@ missing field (explicit deviation from the Orbi reference behavior noted in
 
 ## 7. Traceability and logging design
 
-**Logged per request** (via `NebulaIntegrationLogWriter`, written on every
+**Logged per request** (via `MGAgenciaIntegrationLogWriter`, written on every
 outcome — success, duplicate, validation failure, and system error): receipt
 timestamp and processing duration; request origin (caller/system identifier,
 not raw network metadata unless a security requirement confirms it's
-needed); external correlation identifier if/when the Nebüla-supplied
+needed); external correlation identifier if/when the MGAgencia-supplied
 identifier decision is confirmed (§5, §11); the generated integration
 identifier (§5); processing result classification (created /
 created-duplicate / validation-failed / resolution-failed / system-error);
@@ -266,10 +266,10 @@ restricted visibility given it may reference PII-adjacent Lead data.
   SOQL/DML inside loops) so a future batch endpoint can reuse the same
   service/resolver/builder classes without rewriting them — a design
   discipline for v1, not a feature being built now.
-- `NebulaLeadDuplicateEvaluator` must query using selective, indexed criteria
+- `MGAgenciaLeadDuplicateEvaluator` must query using selective, indexed criteria
   (once the detection rule is confirmed) to avoid non-selective SOQL against
   a potentially large Lead table.
-- `NebulaIntegrationLogWriter` performs at most one DML per request; it must
+- `MGAgenciaIntegrationLogWriter` performs at most one DML per request; it must
   not run inside a loop or retry indefinitely.
 - **Future batch/bulk endpoint** is out of scope for v1 (CLAUDE.md does not
   request it). If later approved it needs its own governor-limit analysis
@@ -283,14 +283,14 @@ restricted visibility given it may reference PII-adjacent Lead data.
 
 - **Least privilege**: the integration user must operate under a dedicated
   Permission Set (§4), never System Administrator. Required grants: API
-  Enabled, `Nebula*` Apex class access, Lead create/read, field-level
+  Enabled, `MGAgencia*` Apex class access, Lead create/read, field-level
   security on every mapped field, Dealer/Campaign lookup read access,
   integration log object create access.
 - **No internal IDs, secrets, or raw exceptions cross the boundary** —
-  enforced structurally by `NebulaLeadResponseBuilder` being the single point
+  enforced structurally by `MGAgenciaLeadResponseBuilder` being the single point
   serializing outbound JSON, and by custom exceptions
-  (`NebulaValidationException`, `NebulaResolutionException`,
-  `NebulaIntegrationException`) carrying only safe, pre-classified messages.
+  (`MGAgenciaValidationException`, `MGAgenciaResolutionException`,
+  `MGAgenciaIntegrationException`) carrying only safe, pre-classified messages.
 - **Authentication/authorization mechanism is not designed in this document.**
   CLAUDE.md requires it be documented before production deployment; it is
   **PENDING BUSINESS DECISION**. Candidates to evaluate at Phase 3/4 (not a
@@ -319,7 +319,7 @@ restricted visibility given it may reference PII-adjacent Lead data.
 | 5. Apex implementation | Apex classes per §3 component map | `salesforce-developer` | Metadata deployed (Phase 4) | Layered classes implemented per documented boundaries, peer-reviewed | Not started |
 | 6. Automated tests | Apex test classes; `docs/TEST_PLAN.md` | `qa-integration-engineer` | Implementation complete (Phase 5) | Scenarios from CLAUDE.md §Apex tests covered; tests verify behavior, not only coverage | Not started |
 | 7. Sandbox integration testing | Test execution report | `qa-integration-engineer` | Tests passing in isolation (Phase 6) | End-to-end flow verified against `condor-qas` | Not started |
-| 8. Nebüla UAT | UAT sign-off record | `solution-architect` + Nebüla stakeholders | Sandbox integration testing passed (Phase 7) | Nebüla confirms contract behavior against sandbox | Not started |
+| 8. MGAgencia UAT | UAT sign-off record | `solution-architect` + MGAgencia stakeholders | Sandbox integration testing passed (Phase 7) | MGAgencia confirms contract behavior against sandbox | Not started |
 | 9. Production deployment | Deployment to `mi-org` | `salesforce-developer`, gated by `salesforce-security-reviewer` sign-off | UAT sign-off (Phase 8); explicit production confirmation | Live in `mi-org`; authentication mechanism documented; monitoring/log retention confirmed | Not started |
 
 ---
@@ -331,7 +331,7 @@ and must not be resolved by inference in this or any other artifact.
 
 | Item | Type | Where else tracked |
 | --- | --- | --- |
-| Nebüla-supplied Lead identifier (`external_lead_id`) | PENDING BUSINESS DECISION | CLAUDE.md §Pending external decisions |
+| MGAgencia-supplied Lead identifier (`external_lead_id`) | PENDING BUSINESS DECISION | CLAUDE.md §Pending external decisions |
 | Campaign identification approach (external code vs. other) | PENDING BUSINESS DECISION | CLAUDE.md §Pending external decisions |
 | Lead status query requirement (GET endpoint) | PENDING BUSINESS DECISION | CLAUDE.md §Pending external decisions |
 | Duplicate detection rule/signals | PENDING BUSINESS DECISION | CLAUDE.md §Duplicate handling; `docs/DECISIONS.md` 2026-08-26 |

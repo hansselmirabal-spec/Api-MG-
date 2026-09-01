@@ -62,9 +62,9 @@
         <label>Llamada Telefónica del Prospecto</label>
     </standardValue>
     <standardValue>
-        <fullName>Nebüla</fullName>
+        <fullName>MGAgencia</fullName>
         <default>false</default>
-        <label>Nebüla</label>
+        <label>MGAgencia</label>
     </standardValue>
     <standardValue>
         <fullName>Pop-up delSol</fullName>

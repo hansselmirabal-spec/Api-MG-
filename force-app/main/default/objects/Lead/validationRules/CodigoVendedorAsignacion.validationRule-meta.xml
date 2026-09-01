@@ -8,7 +8,7 @@
 				ISBLANK(VendorCode2__c),
 				$Profile.Name != &apos;Pre-calificación&apos;, 
 $Profile.Name != &apos;Administrador del sistema&apos;,
-NOT($Permission.Nebula_Integration_Bypass)
+NOT($Permission.MGAgencia_Integration_Bypass)
 )</errorConditionFormula>
     <errorDisplayField>VendorCode2__c</errorDisplayField>
     <errorMessage>De debe seleccionar un código de vendedor.</errorMessage>

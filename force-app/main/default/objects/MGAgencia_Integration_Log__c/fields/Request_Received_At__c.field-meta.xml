@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Request_Received_At__c</fullName>
+    <description>Fecha y hora de recepción de la solicitud HTTP.</description>
+    <inlineHelpText>Momento en que se recibió la solicitud de MGAgencia.</inlineHelpText>
+    <label>Solicitud Recibida</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <type>DateTime</type>
+</CustomField>

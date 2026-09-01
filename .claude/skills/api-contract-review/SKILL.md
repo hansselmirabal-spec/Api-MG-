@@ -1,6 +1,6 @@
 ---
 name: api-contract-review
-description: "Trigger: API contract, REST schema, response codes. Review Nebüla Salesforce v1 request and response behavior."
+description: "Trigger: API contract, REST schema, response codes. Review MGAgencia Salesforce v1 request and response behavior."
 license: Apache-2.0
 metadata:
   author: "Gentle AI"

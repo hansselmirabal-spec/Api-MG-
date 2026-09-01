@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Duplicate_Reason__c</fullName>
-    <description>Señal que motivó la marca de duplicado (teléfono, email o identificador externo coincidente). Poblado por la integración Nebüla.</description>
+    <description>Señal que motivó la marca de duplicado (teléfono, email o identificador externo coincidente). Poblado por la integración MGAgencia.</description>
     <externalId>false</externalId>
     <inlineHelpText>Motivo por el cual este Lead fue marcado como duplicado (por ejemplo: coincidencia de teléfono o email con un Lead existente).</inlineHelpText>
     <label>Motivo de Duplicado</label>

@@ -2,13 +2,13 @@
 
 ## Project
 
-Nebüla → Salesforce Lead Integration
+MGAgencia → Salesforce Lead Integration
 
 ## Objective
 
-Build a secure Salesforce REST API that allows Nebüla to send advertising Leads directly into Salesforce.
+Build a secure Salesforce REST API that allows MGAgencia to send advertising Leads directly into Salesforce.
 
-Nebüla is the API consumer. Salesforce is the system receiving and creating the Leads.
+MGAgencia is the API consumer. Salesforce is the system receiving and creating the Leads.
 
 The first version will be implemented directly in Salesforce using Apex REST. No middleware or external API Gateway will be introduced unless explicitly approved later.
 
@@ -21,7 +21,7 @@ The first version will be implemented directly in Salesforce using Apex REST. No
 
 # Core principles
 
-1. Do not expose Salesforce administrative access to Nebüla.
+1. Do not expose Salesforce administrative access to MGAgencia.
 2. Do not expose Salesforce internal Record IDs unless there is a confirmed functional requirement.
 3. Do not invent business rules, field mappings, identifiers or catalog values.
 4. Any unresolved business decision must be marked as: **PENDING BUSINESS DECISION**
@@ -36,18 +36,18 @@ The first version will be implemented directly in Salesforce using Apex REST. No
 
 # Integration direction
 
-Nebüla → HTTPS REST API → Salesforce → Validation → Mapping → Lead creation → Integration logging → API response
+MGAgencia → HTTPS REST API → Salesforce → Validation → Mapping → Lead creation → Integration logging → API response
 
 ---
 
 # Current confirmed requirements
 
-- Nebüla will connect to our Salesforce API and send Leads.
+- MGAgencia will connect to our Salesforce API and send Leads.
 - The Salesforce implementation will use Apex REST.
 - The API will create records in the Salesforce Lead object.
 - Dealer / Concessionaire identifiers already exist in Salesforce.
 - If a duplicated Lead is received, it must still be created. The newly created record must be marked as duplicated according to a rule that will be defined during implementation.
-- The API must clearly inform Nebüla whether the operation succeeded or failed.
+- The API must clearly inform MGAgencia whether the operation succeeded or failed.
 - The API should return an integration identifier instead of exposing Salesforce internal identifiers unless explicitly required.
 
 ---
@@ -56,16 +56,16 @@ Nebüla → HTTPS REST API → Salesforce → Validation → Mapping → Lead cr
 
 The following items must not be invented.
 
-## Nebüla Lead Identifier
-Confirm whether Nebüla can send a unique identifier for every Lead. Preferred field name: `external_lead_id`.
+## MGAgencia Lead Identifier
+Confirm whether MGAgencia can send a unique identifier for every Lead. Preferred field name: `external_lead_id`.
 Status: PENDING BUSINESS DECISION
 
 ## Campaign identification
-Confirm how Nebüla identifies advertising campaigns. Preferred approach: Nebüla sends an external campaign code; Salesforce resolves that code internally. Nebüla should not be required to know Salesforce Campaign Record IDs.
+Confirm how MGAgencia identifies advertising campaigns. Preferred approach: MGAgencia sends an external campaign code; Salesforce resolves that code internally. MGAgencia should not be required to know Salesforce Campaign Record IDs.
 Status: PENDING BUSINESS DECISION
 
 ## Lead status query
-Confirm whether Nebüla only needs confirmation when a Lead is created or whether it must later query the Lead status.
+Confirm whether MGAgencia only needs confirmation when a Lead is created or whether it must later query the Lead status.
 Status: PENDING BUSINESS DECISION
 Do not implement a GET status endpoint until this requirement is confirmed.
 
@@ -204,7 +204,7 @@ Maintain:
 - docs/DECISIONS.md
 - docs/TEST_PLAN.md
 
-The API specification must be understandable by Nebüla without access to Salesforce implementation details.
+The API specification must be understandable by MGAgencia without access to Salesforce implementation details.
 
 ---
 
@@ -216,7 +216,7 @@ Important architectural or business decisions must be recorded in docs/DECISIONS
 
 # Reference documentation
 
-The provided Nebüla / Orbi API document ("Orbi Leads API Documentation v1.0") comes from another market. Use it only as a technical reference.
+The provided MGAgencia / Orbi API document ("Orbi Leads API Documentation v1.0") comes from another market. Use it only as a technical reference.
 
 Do NOT assume its fields, IDs, mandatory attributes, URLs, authentication credentials, campaign codes or vehicle identifiers apply to this project.
 
@@ -248,7 +248,7 @@ Before implementing a feature:
 5. Apex implementation.
 6. Automated tests.
 7. Sandbox integration testing.
-8. Nebüla UAT.
+8. MGAgencia UAT.
 9. Production deployment.
 
 Do not skip directly to Apex development before completing Salesforce discovery and API contract definition.

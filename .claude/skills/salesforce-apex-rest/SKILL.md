@@ -8,7 +8,7 @@ metadata:
 ---
 
 ## Activation Contract
-Load when implementing or changing approved Apex REST behavior for the Nebüla Lead integration.
+Load when implementing or changing approved Apex REST behavior for the MGAgencia Lead integration.
 
 ## Hard Rules
 - Read `../../../CLAUDE.md`, `../../../docs/CONTEXT.md`, and approved mapping/contract artifacts first.

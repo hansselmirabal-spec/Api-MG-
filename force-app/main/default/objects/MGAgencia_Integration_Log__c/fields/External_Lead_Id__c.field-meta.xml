@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>External_Lead_Id__c</fullName>
-    <caseSensitive>false</caseSensitive>
-    <description>Identificador externo del Lead enviado por MGAgencia (external_lead_id). No único por ahora, pendiente de confirmación de MGAgencia.</description>
-    <externalId>true</externalId>
-    <inlineHelpText>Identificador del Lead en el sistema de origen (MGAgencia).</inlineHelpText>
+    <description>Identificador externo del Lead enviado por MGAgencia (external_lead_id), copiado al log para correlación.</description>
+    <externalId>false</externalId>
+    <inlineHelpText>Identificador del Lead en el sistema de origen (MGAgencia), si fue enviado.</inlineHelpText>
     <label>ID Externo MGAgencia</label>
     <length>100</length>
     <required>false</required>

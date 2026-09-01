@@ -2,9 +2,9 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Duplicated_Lead__c</fullName>
     <defaultValue>false</defaultValue>
-    <description>Marca los Leads creados por la integración Nebüla que coinciden con un Lead existente no perdido (teléfono, email o identificador externo). El Lead se crea igualmente; este campo solo lo señala como duplicado.</description>
+    <description>Marca los Leads creados por la integración MGAgencia que coinciden con un Lead existente no perdido (teléfono, email o identificador externo). El Lead se crea igualmente; este campo solo lo señala como duplicado.</description>
     <externalId>false</externalId>
-    <inlineHelpText>Indica que este Lead fue detectado como duplicado de otro Lead existente al momento de su creación por la integración Nebüla.</inlineHelpText>
+    <inlineHelpText>Indica que este Lead fue detectado como duplicado de otro Lead existente al momento de su creación por la integración MGAgencia.</inlineHelpText>
     <label>Lead Duplicado</label>
     <trackHistory>false</trackHistory>
     <type>Checkbox</type>

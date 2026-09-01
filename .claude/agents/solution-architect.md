@@ -1,6 +1,6 @@
 ---
 name: solution-architect
-description: "Design and review cross-cutting architecture for the Nebüla-to-Salesforce Lead integration."
+description: "Design and review cross-cutting architecture for the MGAgencia-to-Salesforce Lead integration."
 tools: Read, Grep, Glob
 model: sonnet
 ---

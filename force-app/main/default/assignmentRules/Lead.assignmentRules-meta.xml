@@ -31,17 +31,17 @@
             </criteriaItems>
         </ruleEntry>
         <ruleEntry>
-            <assignedTo>Nebula_Leads</assignedTo>
+            <assignedTo>MGAgencia_Leads</assignedTo>
             <assignedToType>Queue</assignedToType>
             <criteriaItems>
                 <field>Lead.LeadSource</field>
                 <operation>equals</operation>
-                <value>Nebüla</value>
+                <value>MGAgencia</value>
             </criteriaItems>
             <criteriaItems>
                 <field>Lead.Status</field>
                 <operation>equals</operation>
-                <value>Formulario Nebüla</value>
+                <value>Formulario MGAgencia</value>
             </criteriaItems>
         </ruleEntry>
     </assignmentRule>

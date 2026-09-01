@@ -1,4 +1,4 @@
-# FIELD_MAPPING — Lead (Nebüla → Salesforce)
+# FIELD_MAPPING — Lead (MGAgencia → Salesforce)
 
 ## 1. Discovery summary
 
@@ -27,7 +27,7 @@ Conventions: **Confirmed** = observed in metadata. **PROPOSED** = suggestion by 
 
 All record types expose the same values for `LeadSource`, `Family__c`, `Nearest_Branch__c`, `Preferencia_de_contacto__c`, `VehicleType__c`, `lead_type__c`. `Fisica_Precali` adds `Estatus__c = Precalificado`. Note: flows `Asignacion_para_Precalificacion` / `Asignacion_Lead_a_Vendedor` may switch the record type to `Fisica_Precali` after creation.
 
-Record type for API-created Leads: **PENDING BUSINESS DECISION** (evidence suggests `Fisica` for consumer leads; `Juridica` if Nebüla sends company data).
+Record type for API-created Leads: **PENDING BUSINESS DECISION** (evidence suggests `Fisica` for consumer leads; `Juridica` if MGAgencia sends company data).
 
 ---
 
@@ -47,7 +47,7 @@ Record type for API-created Leads: **PENDING BUSINESS DECISION** (evidence sugge
 
 | Field | Rule | Condition | Impact on API |
 |---|---|---|---|
-| `FirstName` | `FirstNameRequired` | Blank `FirstName` and user role ≠ `SystemAdministrator`. | **Blocks insert** for an integration user unless it has the `SystemAdministrator` role (not acceptable per least-privilege). Nebüla must send a first name, or the rule must be adjusted. |
+| `FirstName` | `FirstNameRequired` | Blank `FirstName` and user role ≠ `SystemAdministrator`. | **Blocks insert** for an integration user unless it has the `SystemAdministrator` role (not acceptable per least-privilege). MGAgencia must send a first name, or the rule must be adjusted. |
 | `VendorCode2__c` (Vendedor producto) | `CodigoVendedorAsignacion` | `ISNEW()` AND `Status <> 'Nuevo'` AND `VendorCode2__c` blank AND profile ∉ {`Pre-calificación`, `Administrador del sistema`}. | **Blocks insert** for any non-admin integration profile because `Nuevo` is not an active `Status` value (active values: Formulario Meta, Lead MQL, Lead SQL, Nurturing, Lead Gestionado, Prospecto, Convertido, Perdido). The trigger auto-fills `VendorCode2__c` from a `ProductSeller__c` owned by the running user matching `Family__c`, so the integration user would need its own `ProductSeller__c` rows, or the rule/profile must be handled. **Design blocker.** |
 | `Campana__c` (Evento) | `Completar_Evento` | `LeadSource = 'Campaña'` OR `Visit_to_the_showroom__c = 'Eventos'`, and `Campana__c` blank. | Only if API uses `LeadSource = Campaña`. |
 | `Visit_to_the_showroom__c` | `Completar_Visita_al_Showroom` | `LeadSource = 'Visita a Showroom'`. | Avoid that LeadSource. |
@@ -68,7 +68,7 @@ Rules that only fire on status transitions / conversion (`CI_obligatorio_para_Fi
 | `Status` | must be an explicit value chosen for API leads; the default `Prospecto` triggers `Segmento_y_o_Modelo_vacio_o_otros` | **PENDING BUSINESS DECISION** (candidate values: `Formulario Meta` → enters existing Meta assignment pipeline; `Lead MQL`; `Nurturing`) |
 | `Family__c` | drives vendor assignment, assignment calendars and the `Reglas de Meta` assignment rule | **PENDING BUSINESS DECISION** (likely fixed `AUTOMÓVILES MG` for this project, but must be confirmed) |
 | `VendorCode2__c` or bypass | `CodigoVendedorAsignacion` | **Design blocker — see Risks** |
-| `MobilePhone` and/or `Email` | duplicate detection (matching rule uses both) and contact | **PENDING BUSINESS DECISION** (which of the two is mandatory from Nebüla) |
+| `MobilePhone` and/or `Email` | duplicate detection (matching rule uses both) and contact | **PENDING BUSINESS DECISION** (which of the two is mandatory from MGAgencia) |
 | `RecordTypeId` | record type selection | **PENDING BUSINESS DECISION** |
 
 ---
@@ -84,14 +84,14 @@ Rules that only fire on status transitions / conversion (`CI_obligatorio_para_Fi
 | `CI__c`, `RUC__c` | document numbers | text | RUC validated/auto-corrected in trigger; `CONTROL_CUENTA_EXISTENTE` flow links existing Account by CI/RUC and sets `Codigo_vendedor__c`/`Nuevo__c`. |
 | `LeadSource` | Origen | picklist | See §8. |
 | `Campana__c` | Evento | lookup(Campaign) | Campaign link. `campa_a_meta__c` (text) is the raw Meta campaign name; flow `Actualizar_Campa_as_Digitales` resolves/creates a Campaign by `Name` when `LeadSource` ∈ {Redes Sociales Empresa, Redes Sociales Propias del Vendedor}. |
-| `Family__c` → `Brand__c` → `Segmento__c` → `interest_model__c` | product hierarchy | dependent picklists | Controlling chain: `Family__c` controls `Brand__c`, `Brand__c` controls `Segmento__c`, `Segmento__c` controls `interest_model__c`. MG values exist (`Family__c = AUTOMÓVILES MG`; models such as MG RX9 LUX). Exact value list to be sent by Nebüla: **PENDING BUSINESS DECISION**. |
+| `Family__c` → `Brand__c` → `Segmento__c` → `interest_model__c` | product hierarchy | dependent picklists | Controlling chain: `Family__c` controls `Brand__c`, `Brand__c` controls `Segmento__c`, `Segmento__c` controls `interest_model__c`. MG values exist (`Family__c = AUTOMÓVILES MG`; models such as MG RX9 LUX). Exact value list to be sent by MGAgencia: **PENDING BUSINESS DECISION**. |
 | `Brand1__c`, `Model__c`, `VehicleOfInterestOfTheWeb__c` | free text brand/model | text | Non-validated free-text alternatives (used by web forms). |
 | `Nearest_Branch__c` | Sucursal más cercana | picklist | `ASUNCIÓN | CIUDAD DEL ESTE | CORONEL OVIEDO | ENCARNACIÓN`. |
 | `Sucursal_Seleccionada_Meta__c` | Sucursal Seleccionada Meta | text | Values in use: `asunción`, `ciudad_del_este`, `encarnación`, `coronel_oviedo`. Flow `Asignacion_Lead_a_Vendedor` matches it against `Calendario_de_Asignaciones__c.Sucursal__c`. |
 | `Preferencia_de_contacto__c` | Preferencia de contacto | picklist | `Correo Electrónico | WhatsApp | Teléfono`. |
 | `PurchaseTerm__c` | Interés de compra | picklist | `INMEDIATA | EN 3 MESES | 6 MESES | 1 AÑO | SIN INTERES DE COMPRA`. |
 | `Description`, `Comments__c`, `Descripci_n_de_Meta__c` | free text | textarea/text | |
-| `sfleadcaphfprod__External_Lead_ID__c` | External Lead ID | text, **External ID** | Managed package (Salesforce Lead Capture). Populated on ~8.1k leads (Meta). Reusing it for Nebüla would mix sources: **PENDING BUSINESS DECISION**. |
+| `sfleadcaphfprod__External_Lead_ID__c` | External Lead ID | text, **External ID** | Managed package (Salesforce Lead Capture). Populated on ~8.1k leads (Meta). Reusing it for MGAgencia would mix sources: **PENDING BUSINESS DECISION**. |
 | `ID_Meta__c`, `Meta_CTWA_CLID__c`, `Meta_Conversion_Data__c` | Meta identifiers | text | Precedent of source-specific ID fields. |
 | `TestDriveRequested__c`, `WebIdentification__c` | test drive | boolean/picklist | Flow sets `TestDriveRequested__c` when `WebIdentification__c = TEST DRIVE`. |
 | `Country__c`, `GeographicalDepartment__c`, `City__c` | geography | lookups/picklist | `Region__c` has `RegionCode__c` and `IntegrationCode__c`. |
@@ -181,7 +181,7 @@ No object named "Dealer/Concesionario" exists. Candidates found:
 | Dealer picklist on Opportunity | `Opportunity.Dealer__c` | picklist (`GOROSTIAGA`, `AUTOMALL`) | — | Third-party dealers; no equivalent on Lead. |
 | Region | `Region__c` | `RegionCode__c`, `IntegrationCode__c` | 1525 | Geographic departments, not dealers. |
 
-RESOLVED (Decision 7, 2026-08-31): "branch" means a Cóndor branch. Nebüla may optionally send `branch_code` (4-value catalog) resolved to `Nearest_Branch__c`. `Sucursal_Seleccionada_Meta__c` is not used (Meta-flow specific). Third-party dealers (Gorostiaga/Automall) are out of scope for v1.
+RESOLVED (Decision 7, 2026-08-31): "branch" means a Cóndor branch. MGAgencia may optionally send `branch_code` (4-value catalog) resolved to `Nearest_Branch__c`. `Sucursal_Seleccionada_Meta__c` is not used (Meta-flow specific). Third-party dealers (Gorostiaga/Automall) are out of scope for v1.
 
 ---
 
@@ -193,9 +193,9 @@ RESOLVED (Decision 7, 2026-08-31): "branch" means a Cóndor branch. Nebüla may 
 - Precedent: Meta integration stores the raw campaign name in `Lead.campa_a_meta__c` and flow `Actualizar_Campa_as_Digitales` resolves by `Campaign.Name` (auto-creating under parent "Campañas Meta").
 
 Options (evidence-based, not decided):
-1. Add an External ID text field on Campaign (e.g. `Nebula_Campaign_Code__c`) and resolve `campaign_code` → `Campana__c`. Requires the marketing team to populate codes.
+1. Add an External ID text field on Campaign (e.g. `MGAgencia_Campaign_Code__c`) and resolve `campaign_code` → `Campana__c`. Requires the marketing team to populate codes.
 2. Resolve by `Campaign.Name` like the Meta flow (fragile, name collisions).
-3. Auto-create campaigns under a "Campañas Nebüla" parent when unknown (mirrors Meta behaviour).
+3. Auto-create campaigns under a "Campañas MGAgencia" parent when unknown (mirrors Meta behaviour).
 
 Which option: **PENDING BUSINESS DECISION**.
 
@@ -203,14 +203,14 @@ Which option: **PENDING BUSINESS DECISION**.
 
 ## 8. Lead Source, Status and existing duplicate signals
 
-- `LeadSource` active values: Asignado por Gerencia, Campaña Digital, Dealer, Campaña, Freelance, Funcionarios, Gestión Cartera, Gestión propia, Intercompany, Lead recuperado, Licitaciones, Llamada Telefónica del Prospecto, Pop-up delSol, Redes Sociales Empresa, Redes Sociales Propias del Vendedor, Referido, Referido colaborador, Referido Vendedor, Taller, Visita a Showroom, Web, WhatsApp Corporativo, WhatsApp Corporativo Empresa. Most used: Redes Sociales Empresa (~5.3k), Redes Sociales Propias del Vendedor (~2.8k). No value for "Nebüla" exists. Value to use (existing `Campaña Digital`/`Dealer`, or a new `Nebüla` value): **PENDING BUSINESS DECISION**.
+- `LeadSource` active values: Asignado por Gerencia, Campaña Digital, Dealer, Campaña, Freelance, Funcionarios, Gestión Cartera, Gestión propia, Intercompany, Lead recuperado, Licitaciones, Llamada Telefónica del Prospecto, Pop-up delSol, Redes Sociales Empresa, Redes Sociales Propias del Vendedor, Referido, Referido colaborador, Referido Vendedor, Taller, Visita a Showroom, Web, WhatsApp Corporativo, WhatsApp Corporativo Empresa. Most used: Redes Sociales Empresa (~5.3k), Redes Sociales Propias del Vendedor (~2.8k). No value for "MGAgencia" exists. Value to use (existing `Campaña Digital`/`Dealer`, or a new `MGAgencia` value): **PENDING BUSINESS DECISION**.
 - `Status` active values: Formulario Meta, Lead MQL, Lead SQL, Nurturing, Lead Gestionado, Prospecto (default), Convertido, Perdido. Validation rules also reference inactive values (`Nuevo`, `Calificado`, `Asignado`…).
 - `Estatus__c` (secondary status): Asignado, Nuevo, No Responde, No Contactado, Contactado, Sin Tarea, Reasignado, Precalificado.
 - Existing duplicate signals on Lead:
   - `ItIsNotADuplicateOpportunity__c` (boolean, semantics relate to Opportunity, not Lead duplicates).
   - `loss_reason__c` value `Duplicado` (used when a Lead is closed as lost because duplicated).
   - Duplicate rule reporting into `DuplicateRecordSet` (Allow/Report).
-  - No boolean "duplicate lead" flag exists. A new field (e.g. `Nebula_Is_Duplicate__c` + `Nebula_Duplicate_Of__c`) would be needed: PROPOSED, rule **PENDING BUSINESS DECISION**.
+  - No boolean "duplicate lead" flag exists. A new field (e.g. `MGAgencia_Is_Duplicate__c` + `MGAgencia_Duplicate_Of__c`) would be needed: PROPOSED, rule **PENDING BUSINESS DECISION**.
 
 ---
 
@@ -218,7 +218,7 @@ Which option: **PENDING BUSINESS DECISION**.
 
 Permission sets whose names suggest integration/API use: `WebServices`, `Salesforce_Lead_Capture` (Lead CRE), `Meta_Lead_Automation`, `Lead_Ciclo_Propietario`, `ExactTarget_Integration`, `sfdc_scrt2`, `sfdc_a360`, `MuleSoftXAPIAIPermSet`, plus Salesforce-managed integration sets (`Anc*IntegrationUser`, `C2C*`, `E360MessagingC2CPermSet`, `HighScaleFlowC2CPermSet`, `D360HomeOrgPermSet`).
 Profiles of interest: `Minimum Access - API Only Integrations`, `Salesforce API Only System Integrations`, `Minimum Access - Salesforce`, `Anypoint Integration`.
-None is Nebüla-specific. PROPOSED: dedicated API-only user + new permission set (Apex class access, Lead create/read, FLS on mapped fields, read on Campaign/dealer mapping, create on integration log).
+None is MGAgencia-specific. PROPOSED: dedicated API-only user + new permission set (Apex class access, Lead create/read, FLS on mapped fields, read on Campaign/dealer mapping, create on integration log).
 
 ---
 
@@ -234,47 +234,47 @@ answer before implementation.
 
 | API field | Lead field | Source | Required | Status |
 |---|---|---|---|---|
-| `external_lead_id` | new field (name TBD, External ID) | Nebüla payload (proposed) | Proposed required | **PENDING BUSINESS DECISION** — whether Nebüla can send it; exact target field |
-| `first_name` | `FirstName` | Nebüla payload | Yes | CONFIRMED (`FirstNameRequired` VR; trim, flow upper-cases) |
-| `last_name` | `LastName` | Nebüla payload | Yes | CONFIRMED (system-required) |
-| `phone` | `MobilePhone` | Nebüla payload | Yes | CONFIRMED — Decision 5. Normalised by org to `595XXXXXXXXX` (`DatosInicialesProspecto` flow, `MobileFormat` VR on later updates) |
-| `email` | `Email` | Nebüla payload | No | CONFIRMED — Decision 5 |
-| `campaign_code` | `Campana__c` (via resolver — mechanism TBD) | Nebüla payload | Unresolved | **PENDING BUSINESS DECISION** — campaign identification approach (§7) |
-| `branch_code` | `Nearest_Branch__c` (resolver: code → picklist value) | Nebüla payload | No | CONFIRMED (optional). Catalog: ASUNCION, CIUDAD_DEL_ESTE, CORONEL_OVIEDO, ENCARNACION. `Sucursal_Seleccionada_Meta__c` not used (Meta-flow specific) |
-| `interest_model` (brand/model/version/year) | `Segmento__c` + `interest_model__c` (validated chain) or free-text fields | Nebüla payload | Unresolved | **PENDING BUSINESS DECISION** — Nebüla vehicle catalog is unknown; do not invent (§4, §11) |
-| — | `Duplicated_Lead__c` (new checkbox) | System (computed) | — | CONFIRMED — Decision 4. Set by the application service, never sent by Nebüla |
+| `external_lead_id` | new field (name TBD, External ID) | MGAgencia payload (proposed) | Proposed required | **PENDING BUSINESS DECISION** — whether MGAgencia can send it; exact target field |
+| `first_name` | `FirstName` | MGAgencia payload | Yes | CONFIRMED (`FirstNameRequired` VR; trim, flow upper-cases) |
+| `last_name` | `LastName` | MGAgencia payload | Yes | CONFIRMED (system-required) |
+| `phone` | `MobilePhone` | MGAgencia payload | Yes | CONFIRMED — Decision 5. Normalised by org to `595XXXXXXXXX` (`DatosInicialesProspecto` flow, `MobileFormat` VR on later updates) |
+| `email` | `Email` | MGAgencia payload | No | CONFIRMED — Decision 5 |
+| `campaign_code` | `Campana__c` (via resolver — mechanism TBD) | MGAgencia payload | Unresolved | **PENDING BUSINESS DECISION** — campaign identification approach (§7) |
+| `branch_code` | `Nearest_Branch__c` (resolver: code → picklist value) | MGAgencia payload | No | CONFIRMED (optional). Catalog: ASUNCION, CIUDAD_DEL_ESTE, CORONEL_OVIEDO, ENCARNACION. `Sucursal_Seleccionada_Meta__c` not used (Meta-flow specific) |
+| `interest_model` (brand/model/version/year) | `Segmento__c` + `interest_model__c` (validated chain) or free-text fields | MGAgencia payload | Unresolved | **PENDING BUSINESS DECISION** — MGAgencia vehicle catalog is unknown; do not invent (§4, §11) |
+| — | `Duplicated_Lead__c` (new checkbox) | System (computed) | — | CONFIRMED — Decision 4. Set by the application service, never sent by MGAgencia |
 | — | Duplicate-reason text field (new, name TBD) | System (computed) | — | CONFIRMED — Decision 4. Records the matched signal (`MobilePhone`, `Email`, or `external_lead_id` if confirmed) |
-| — | Integration identifier (`integration_id`, returned to Nebüla) | System (generated) | — | CONFIRMED mechanism — `ARCHITECTURE.md` §5 Option A (UUID on integration log record); response field only, not a Lead field |
+| — | Integration identifier (`integration_id`, returned to MGAgencia) | System (generated) | — | CONFIRMED mechanism — `ARCHITECTURE.md` §5 Option A (UUID on integration log record); response field only, not a Lead field |
 
 ### 10.2 Fixed-by-configuration values
 
-Applied to every API-created Lead; Nebüla sends none of these.
+Applied to every API-created Lead; MGAgencia sends none of these.
 
 | Salesforce field | Fixed value | Mechanism | Status |
 |---|---|---|---|
 | `RecordTypeId` | `Fisica` (Persona Física) | Resolved by developer name (no hard-coded Id); Custom Metadata | CONFIRMED — Decision 3 |
 | `Family__c` | `AUTOMÓVILES MG` | Custom Metadata | CONFIRMED — Decision 3 |
 | `Brand__c` | `MG` | Custom Metadata | CONFIRMED — Decision 3 |
-| `Status` | `Formulario Nebüla` (new picklist value) | Fixed initial value at insert | CONFIRMED — Decision 2 |
-| `LeadSource` | `Nebüla` (new picklist value) | Fixed value at insert | CONFIRMED — Decision 2 |
-| Owner / queue | Routed to queue `Nebüla Leads` | New entry on the org's single active Lead assignment rule (`LeadSource = 'Nebüla'` → `Nebüla Leads`), applied via `Database.DMLOptions.assignmentRuleHeader`. No new distribution flow in v1 | CONFIRMED — Decision 1 (amended 2026-08-31) |
-| `VendorCode2__c` / `CodigoVendedorAsignacion` VR | Not populated by Nebüla | VR bypassed via custom permission granted only to the integration user | CONFIRMED — Decision 1 |
+| `Status` | `Formulario MGAgencia` (new picklist value) | Fixed initial value at insert | CONFIRMED — Decision 2 |
+| `LeadSource` | `MGAgencia` (new picklist value) | Fixed value at insert | CONFIRMED — Decision 2 |
+| Owner / queue | Routed to queue `MGAgencia Leads` | New entry on the org's single active Lead assignment rule (`LeadSource = 'MGAgencia'` → `MGAgencia Leads`), applied via `Database.DMLOptions.assignmentRuleHeader`. No new distribution flow in v1 | CONFIRMED — Decision 1 (amended 2026-08-31) |
+| `VendorCode2__c` / `CodigoVendedorAsignacion` VR | Not populated by MGAgencia | VR bypassed via custom permission granted only to the integration user | CONFIRMED — Decision 1 |
 
 ### 10.3 Remaining PENDING BUSINESS DECISION items
 
-- **`external_lead_id`** — whether Nebüla can send a unique identifier per Lead, and the exact Salesforce target field (CLAUDE.md, "Nebüla Lead Identifier").
-- **`campaign_code`** — how Nebüla identifies advertising campaigns and how Salesforce resolves that code (§7; CLAUDE.md, "Campaign identification").
-- **Vehicle model catalog (`interest_model`)** — the catalog of brand/model/version/year values Nebüla will send, to be mapped to `Segmento__c` / `interest_model__c` (§4, §11).
-- **GET status endpoint** — whether Nebüla needs to query Lead status after creation, beyond the synchronous creation response (CLAUDE.md, "Lead status query"). Not designed until confirmed.
+- **`external_lead_id`** — whether MGAgencia can send a unique identifier per Lead, and the exact Salesforce target field (CLAUDE.md, "MGAgencia Lead Identifier").
+- **`campaign_code`** — how MGAgencia identifies advertising campaigns and how Salesforce resolves that code (§7; CLAUDE.md, "Campaign identification").
+- **Vehicle model catalog (`interest_model`)** — the catalog of brand/model/version/year values MGAgencia will send, to be mapped to `Segmento__c` / `interest_model__c` (§4, §11).
+- **GET status endpoint** — whether MGAgencia needs to query Lead status after creation, beyond the synchronous creation response (CLAUDE.md, "Lead status query"). Not designed until confirmed.
 
 ---
 
 ## 11. Risks and open questions
 
 1. **`CodigoVendedorAsignacion` blocks inserts** by a non-admin user with `Status <> Nuevo` (an inactive value) and empty `VendorCode2__c`. Options: (a) integration user owns `ProductSeller__c` rows per family so the trigger auto-fills; (b) add a bypass condition (custom permission) to the rule; (c) API resolves a `ProductSeller__c` explicitly. Needs Salesforce admin decision.
-2. **`FirstNameRequired`** — Nebüla must always send a first name, or rule adjusted with a custom permission bypass.
+2. **`FirstNameRequired`** — MGAgencia must always send a first name, or rule adjusted with a custom permission bypass.
 3. **`Segmento_y_o_Modelo_vacio_o_otros`** fires when `Status = Prospecto` (the default). The defaults `Segmento__c = HS PHEV`, `interest_model__c = MG RX9 LUX` mask the problem by silently storing a wrong vehicle. Initial status and vehicle mapping must be decided together.
-4. **Assignment pipeline is Meta-shaped**: assignment rule excludes `AUTOMÓVILES MG`; distribution flow relies on `Sucursal_Seleccionada_Meta__c`, `Family__c`, `Status = Formulario Meta` and the `Reglas Meta` queue. Reusing it for Nebüla requires business confirmation; otherwise Nebüla leads stay owned by the integration user.
+4. **Assignment pipeline is Meta-shaped**: assignment rule excludes `AUTOMÓVILES MG`; distribution flow relies on `Sucursal_Seleccionada_Meta__c`, `Family__c`, `Status = Formulario Meta` and the `Reglas Meta` queue. Reusing it for MGAgencia requires business confirmation; otherwise MGAgencia leads stay owned by the integration user.
 5. **Duplicate rule is Allow/Report** — creation is never blocked, consistent with the create-and-flag requirement; but no duplicate flag field exists. Salesforce's own report (both `MobilePhone` AND `Email` exact, excluding `Perdido`) is stricter than what the business may want.
 6. **No Campaign external code field**; Meta precedent auto-creates campaigns by name.
 7. **No dealer object**; "dealer/concessionaire" semantics (Cóndor branch vs third-party dealer) unresolved.
@@ -282,6 +282,6 @@ Applied to every API-created Lead; Nebüla sends none of these.
 9. Hard-coded record IDs inside flows (queues, users, campaign parent, record type) will differ between `condor-qas` and production; the API must resolve everything by developer name/code.
 10. Legacy workflow rules (12) not analysed in detail; several fire on create for pre-qualification users.
 11. `MobileFormat` rule will reject later user edits if the API stores phones outside the `595` + 9-digit format.
-12. `Conf_Parameters__c` holds credentials for other integrations; the Nebüla permission set must not grant access to it.
+12. `Conf_Parameters__c` holds credentials for other integrations; the MGAgencia permission set must not grant access to it.
 
 Open questions for the business are all tagged **PENDING BUSINESS DECISION** above: external lead id, campaign identification, dealer semantics, vehicle catalog mapping, initial `Status`/`LeadSource`/record type/`Family__c`, mandatory contact field, duplicate rule, ownership/assignment, status query endpoint.

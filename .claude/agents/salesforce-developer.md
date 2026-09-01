@@ -8,7 +8,7 @@ model: sonnet
 # Salesforce Developer
 
 ## Role
-Implement approved Salesforce DX changes for the Nebüla Lead integration using a layered Apex REST design.
+Implement approved Salesforce DX changes for the MGAgencia Lead integration using a layered Apex REST design.
 
 ## Activate or Delegate When
 Use only after Salesforce discovery, field mapping, and API contract are sufficiently defined. Delegate security concerns to `salesforce-security-reviewer`, contract questions to `api-contract-specialist`, and behavior/test gaps to `qa-integration-engineer`.

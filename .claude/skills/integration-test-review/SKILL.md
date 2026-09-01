@@ -1,6 +1,6 @@
 ---
 name: integration-test-review
-description: "Trigger: Apex tests, integration test review, REST behavior. Verify behavior-first coverage for Nebüla Salesforce v1."
+description: "Trigger: Apex tests, integration test review, REST behavior. Verify behavior-first coverage for MGAgencia Salesforce v1."
 license: Apache-2.0
 metadata:
   author: "Gentle AI"
