@@ -34,6 +34,7 @@ MGAgencia  --HTTPS POST-->  Salesforce API
 |---|---|---|
 | Sandbox (UAT) | `https://condorsaci--qas.sandbox.my.salesforce.com` | For integration testing before go-live. |
 | Production | *To be provided at go-live* | Will be shared once UAT is signed off. |
+> **Important:** the token must always be requested from the org's own domain (`*.my.salesforce.com` format), never from `test.salesforce.com` or `login.salesforce.com` — those generic domains reject this authentication flow.
 
 | Item | Value |
 |---|---|
@@ -50,8 +51,8 @@ MGAgencia  --HTTPS POST-->  Salesforce API
 
 | Environment | Token endpoint |
 |---|---|
-| Sandbox | `https://test.salesforce.com/services/oauth2/token` |
-| Production | `https://login.salesforce.com/services/oauth2/token` |
+| Sandbox | `https://condorsaci--qas.sandbox.my.salesforce.com/services/oauth2/token` |
+| Production | `https://<production-domain>.my.salesforce.com/services/oauth2/token` (to be confirmed at go-live) |
 
 Request parameters (`application/x-www-form-urlencoded`):
 
@@ -75,7 +76,7 @@ Authorization: Bearer <access_token>
 
 ```bash
 # 1. Get an access token
-curl -s -X POST "https://test.salesforce.com/services/oauth2/token" \
+curl -s -X POST "https://condorsaci--qas.sandbox.my.salesforce.com/services/oauth2/token" \
   -d "grant_type=client_credentials" \
   -d "client_id=<CLIENT_ID>" \
   -d "client_secret=<CLIENT_SECRET>"

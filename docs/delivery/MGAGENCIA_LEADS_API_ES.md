@@ -34,6 +34,7 @@ MGAgencia  --HTTPS POST-->  API de Salesforce
 |---|---|---|
 | Sandbox (UAT) | `https://condorsaci--qas.sandbox.my.salesforce.com` | Para pruebas de integración antes del pase a producción. |
 | Producción | *A confirmar en el momento del go-live* | Se compartirá una vez aprobado el UAT. |
+> **Importante:** el token se solicita siempre al dominio propio de la organización (formato `*.my.salesforce.com`), nunca a `test.salesforce.com` ni `login.salesforce.com` — esos dominios genéricos rechazan este tipo de autenticación.
 
 | Elemento | Valor |
 |---|---|
@@ -50,8 +51,8 @@ MGAgencia  --HTTPS POST-->  API de Salesforce
 
 | Entorno | Endpoint de token |
 |---|---|
-| Sandbox | `https://test.salesforce.com/services/oauth2/token` |
-| Producción | `https://login.salesforce.com/services/oauth2/token` |
+| Sandbox | `https://condorsaci--qas.sandbox.my.salesforce.com/services/oauth2/token` |
+| Producción | `https://<dominio-produccion>.my.salesforce.com/services/oauth2/token` (se confirmará en el pase a producción) |
 
 Parámetros de la solicitud (`application/x-www-form-urlencoded`):
 
@@ -75,7 +76,7 @@ Authorization: Bearer <access_token>
 
 ```bash
 # 1. Obtener un token de acceso
-curl -s -X POST "https://test.salesforce.com/services/oauth2/token" \
+curl -s -X POST "https://condorsaci--qas.sandbox.my.salesforce.com/services/oauth2/token" \
   -d "grant_type=client_credentials" \
   -d "client_id=<CLIENT_ID>" \
   -d "client_secret=<CLIENT_SECRET>"
