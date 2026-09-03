@@ -106,3 +106,9 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
 - Reason: duplicate detection must scan Leads org-wide. The least-privilege integration user is not a member of the `MGAgencia_Leads` queue that owns API-created Leads, so a sharing-enforced scan saw nothing and silently reported `duplicated: false` on every request (UAT defect DEF-001). No record data crosses the API boundary beyond the boolean flag and generic reason codes, so the sharing bypass is contained and auditable.
 - Alternatives: adding the integration user to the queue (rejected — grants broad record visibility and inbox noise for a non-human user); a sharing rule to the integration user (rejected — same over-exposure, more admin surface).
 - Impact: `MGAgenciaDuplicateEvaluator` refactor + regression test `duplicateIsDetectedUnderLeastPrivilegeIntegrationUser`; TEST_PLAN §6 documents DEF-001.
+
+## 2026-09-03 — Decision 9: raw phone stored in Tel_fono_Meta__c alongside normalized MobilePhone
+
+- Decision: the phone as received from MGAgencia (before normalization) is stored as free text in `Tel_fono_Meta__c`, in addition to the normalized value stored in `MobilePhone` (used for duplicate matching, unchanged).
+- Reason: preserves the raw external value for traceability, matching the existing precedent pattern in the org.
+- Impact: `NebulaPhoneNormalizer`/service writes both fields on Lead creation.
