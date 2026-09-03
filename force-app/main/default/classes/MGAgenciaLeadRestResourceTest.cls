@@ -49,8 +49,8 @@ private class MGAgenciaLeadRestResourceTest {
             integrationId), 'integration_id must be a UUID, got: ' + integrationId);
 
         List<Lead> leads = [SELECT Id, FirstName, LastName, Status, LeadSource, Family__c, Brand__c,
-                                   Nearest_Branch__c, External_Lead_Id__c, Duplicated_Lead__c,
-                                   RecordType.DeveloperName
+                                   Sucursal_Seleccionada_Meta__c, Nearest_Branch__c, External_Lead_Id__c,
+                                   Duplicated_Lead__c, Tel_fono_Meta__c, RecordType.DeveloperName
                             FROM Lead WHERE External_Lead_Id__c = 'neb-rest-001'];
         System.assertEquals(1, leads.size(), 'Exactly one Lead created');
         Lead created = leads[0];
@@ -59,7 +59,12 @@ private class MGAgenciaLeadRestResourceTest {
         System.assertEquals('MG', created.Brand__c, 'Configured brand');
         System.assertEquals('MGAgencia', created.LeadSource, 'Configured lead source');
         System.assertEquals('Formulario MGAgencia', created.Status, 'Configured initial status');
-        System.assertEquals('ASUNCIÓN', created.Nearest_Branch__c, 'branch_code resolved to picklist value');
+        System.assertEquals('Asunción', created.Sucursal_Seleccionada_Meta__c,
+            'branch_code resolved to Sucursal_Seleccionada_Meta__c label (Decision 7 amendment)');
+        System.assertEquals(null, created.Nearest_Branch__c,
+            'Nearest_Branch__c is no longer set by this integration');
+        System.assertEquals('595981111001', created.Tel_fono_Meta__c,
+            'Raw phone stored verbatim (Decision 9)');
         System.assertEquals(false, created.Duplicated_Lead__c, 'Not flagged as duplicate');
         // Org flow DatosInicialesProspecto upper-cases names: compare case-insensitively.
         System.assertEquals('maria', created.FirstName.toLowerCase(), 'First name persisted');
@@ -153,8 +158,11 @@ private class MGAgenciaLeadRestResourceTest {
         Test.stopTest();
 
         System.assertEquals(201, RestContext.response.statusCode, 'Created');
-        Lead created = [SELECT Nearest_Branch__c FROM Lead WHERE External_Lead_Id__c = 'neb-rest-branch'];
-        System.assertEquals('CIUDAD DEL ESTE', created.Nearest_Branch__c, 'Catalog code mapped to label');
+        Lead created = [SELECT Sucursal_Seleccionada_Meta__c, Nearest_Branch__c
+                         FROM Lead WHERE External_Lead_Id__c = 'neb-rest-branch'];
+        System.assertEquals('Ciudad del Este', created.Sucursal_Seleccionada_Meta__c,
+            'Catalog code mapped to the Sucursal_Seleccionada_Meta__c label (Decision 7 amendment)');
+        System.assertEquals(null, created.Nearest_Branch__c, 'Nearest_Branch__c is not set anymore');
     }
 
     @IsTest
@@ -190,10 +198,11 @@ private class MGAgenciaLeadRestResourceTest {
 
     @IsTest
     static void unknownJsonPropertiesAreIgnored() {
-        // campaign_code / interest_model are PENDING BUSINESS DECISION: ignored, not rejected.
+        // campaign_code is PENDING BUSINESS DECISION: ignored, not rejected (interest_model is
+        // now an implemented field, see optionalFieldsPopulateCorrectlyEndToEnd below).
         arrangeRequest(JSON.serialize(new Map<String, Object>{
             'first_name' => 'Ana', 'last_name' => 'Diaz', 'phone' => '595981111005',
-            'campaign_code' => 'CAMP-01', 'interest_model' => 'MG ZS', 'anything_else' => 42
+            'campaign_code' => 'CAMP-01', 'anything_else' => 42
         }));
 
         Test.startTest();
@@ -201,5 +210,117 @@ private class MGAgenciaLeadRestResourceTest {
         Test.stopTest();
 
         System.assertEquals(201, RestContext.response.statusCode, 'Unknown properties are ignored');
+    }
+
+    // ---- 2026-09-03 MGAgencia UAT follow-up fields ------------------------------------------
+
+    @IsTest
+    static void validContactPreferenceMapsToPicklistValue() {
+        arrangeRequest(JSON.serialize(new Map<String, Object>{
+            'first_name' => 'Ana', 'last_name' => 'Diaz', 'phone' => '595981111006',
+            'contact_preference' => 'WhatsApp', 'external_lead_id' => 'neb-rest-cp-ok'
+        }));
+
+        Test.startTest();
+        MGAgenciaLeadRestResource.createLead();
+        Test.stopTest();
+
+        System.assertEquals(201, RestContext.response.statusCode, 'Created');
+        Lead created = [SELECT Preferencia_de_contacto__c FROM Lead
+                         WHERE External_Lead_Id__c = 'neb-rest-cp-ok'];
+        System.assertEquals('WhatsApp', created.Preferencia_de_contacto__c, 'Exact picklist value stored');
+    }
+
+    @IsTest
+    static void unknownContactPreferenceReturns422UnknownValue() {
+        arrangeRequest(JSON.serialize(new Map<String, Object>{
+            'first_name' => 'Ana', 'last_name' => 'Diaz', 'phone' => '595981111007',
+            'contact_preference' => 'SMS'
+        }));
+
+        Test.startTest();
+        MGAgenciaLeadRestResource.createLead();
+        Test.stopTest();
+
+        System.assertEquals(422, RestContext.response.statusCode, 'Unknown contact_preference returns 422');
+        Map<String, Object> error = (Map<String, Object>) ((List<Object>) responseBody().get('errors'))[0];
+        System.assertEquals('contact_preference', error.get('field'), 'contact_preference field reported');
+        System.assertEquals('UNKNOWN_VALUE', error.get('code'), 'Unknown-value error code');
+        System.assertEquals(0, [SELECT COUNT() FROM Lead], 'No Lead created');
+    }
+
+    @IsTest
+    static void freeTextFieldExceedingMaxLengthReturns422InvalidFormat() {
+        arrangeRequest(JSON.serialize(new Map<String, Object>{
+            'first_name' => 'Ana', 'last_name' => 'Diaz', 'phone' => '595981111008',
+            'payment_method' => 'x'.repeat(51)
+        }));
+
+        Test.startTest();
+        MGAgenciaLeadRestResource.createLead();
+        Test.stopTest();
+
+        System.assertEquals(422, RestContext.response.statusCode, 'Over-length free text returns 422');
+        Map<String, Object> error = (Map<String, Object>) ((List<Object>) responseBody().get('errors'))[0];
+        System.assertEquals('payment_method', error.get('field'), 'payment_method field reported');
+        System.assertEquals('INVALID_FORMAT', error.get('code'), 'Invalid-format error code');
+        System.assertEquals(0, [SELECT COUNT() FROM Lead], 'No Lead created');
+    }
+
+    @IsTest
+    static void optionalFieldsPopulateCorrectlyEndToEnd() {
+        arrangeRequest(JSON.serialize(new Map<String, Object>{
+            'first_name' => 'Sofia', 'last_name' => 'Ramirez', 'phone' => '0981222333',
+            'external_lead_id' => 'neb-rest-optfields',
+            'interest_model' => 'MG ZS 2026',
+            'contact_preference' => 'Teléfono',
+            'payment_method' => 'Financiación bancaria',
+            'purchase_timeline' => 'En los próximos 90 días',
+            'trade_in' => 'Sí, quiero tasar',
+            'test_drive_requested' => true
+        }));
+
+        Test.startTest();
+        MGAgenciaLeadRestResource.createLead();
+        Test.stopTest();
+
+        System.assertEquals(201, RestContext.response.statusCode, 'Created');
+        Lead created = [SELECT VehicleOfInterestOfTheWeb__c, Preferencia_de_contacto__c,
+                                Forma_de_Pago__c, Plazo_de_Compra__c, Entrega_su_Auto__c,
+                                TestDriveRequested__c, MobilePhone, Tel_fono_Meta__c
+                         FROM Lead WHERE External_Lead_Id__c = 'neb-rest-optfields'];
+        System.assertEquals('MG ZS 2026', created.VehicleOfInterestOfTheWeb__c, 'interest_model stored');
+        System.assertEquals('Teléfono', created.Preferencia_de_contacto__c, 'contact_preference stored');
+        System.assertEquals('Financiación bancaria', created.Forma_de_Pago__c, 'payment_method stored');
+        System.assertEquals('En los próximos 90 días', created.Plazo_de_Compra__c, 'purchase_timeline stored');
+        System.assertEquals('Sí, quiero tasar', created.Entrega_su_Auto__c, 'trade_in stored');
+        System.assertEquals(true, created.TestDriveRequested__c, 'test_drive_requested stored');
+        System.assertEquals('595981222333', created.MobilePhone, 'MobilePhone normalized for matching');
+        System.assertEquals('0981222333', created.Tel_fono_Meta__c,
+            'Tel_fono_Meta__c stores the raw pre-normalization phone (Decision 9)');
+    }
+
+    @IsTest
+    static void newFieldsAreOptionalAndOmittedWhenAbsent() {
+        arrangeRequest(JSON.serialize(new Map<String, Object>{
+            'first_name' => 'Luis', 'last_name' => 'Torres', 'phone' => '595981111009',
+            'external_lead_id' => 'neb-rest-optabsent'
+        }));
+
+        Test.startTest();
+        MGAgenciaLeadRestResource.createLead();
+        Test.stopTest();
+
+        System.assertEquals(201, RestContext.response.statusCode, 'Omitting all new fields is valid');
+        Lead created = [SELECT VehicleOfInterestOfTheWeb__c, Preferencia_de_contacto__c,
+                                Forma_de_Pago__c, Plazo_de_Compra__c, Entrega_su_Auto__c,
+                                TestDriveRequested__c
+                         FROM Lead WHERE External_Lead_Id__c = 'neb-rest-optabsent'];
+        System.assertEquals(null, created.VehicleOfInterestOfTheWeb__c, 'interest_model left blank');
+        System.assertEquals(null, created.Preferencia_de_contacto__c, 'contact_preference left blank');
+        System.assertEquals(null, created.Forma_de_Pago__c, 'payment_method left blank');
+        System.assertEquals(null, created.Plazo_de_Compra__c, 'purchase_timeline left blank');
+        System.assertEquals(null, created.Entrega_su_Auto__c, 'trade_in left blank');
+        System.assertEquals(false, created.TestDriveRequested__c, 'TestDriveRequested__c keeps its org default');
     }
 }

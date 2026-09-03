@@ -49,6 +49,7 @@ public with sharing class MGAgenciaLeadService {
                 MGAgenciaDuplicateEvaluator.Result duplicate = MGAgenciaDuplicateEvaluator.evaluate(
                     normalizedPhone, request.email, request.external_lead_id);
                 Lead lead = buildLead(request, normalizedPhone, config, duplicate);
+                applyOptionalBooleanFields(lead, request);
                 insertLead(lead);
                 entry.status = 'CREATED';
                 entry.leadId = lead.Id;
@@ -113,10 +114,22 @@ public with sharing class MGAgenciaLeadService {
             FirstName = request.first_name.trim(),
             LastName = request.last_name.trim(),
             MobilePhone = normalizedPhone,
+            // Decision 9 (2026-09-03): raw phone as received, pre-normalization, stored
+            // alongside the normalized MobilePhone used for duplicate matching.
+            Tel_fono_Meta__c = request.phone,
             Email = String.isBlank(request.email) ? null : request.email.trim(),
-            Nearest_Branch__c = MGAgenciaBranchResolver.resolve(request.branch_code),
+            // Decision 7 amendment (2026-09-03): branch_code now targets the free-text
+            // Sucursal_Seleccionada_Meta__c field, not the Nearest_Branch__c picklist.
+            Sucursal_Seleccionada_Meta__c = MGAgenciaBranchResolver.resolve(request.branch_code),
             External_Lead_Id__c = String.isBlank(request.external_lead_id)
                 ? null : request.external_lead_id.trim(),
+            // Added 2026-09-03: MGAgencia UAT follow-up fields, all optional and additive.
+            VehicleOfInterestOfTheWeb__c = String.isBlank(request.interest_model)
+                ? null : request.interest_model.trim(),
+            Preferencia_de_contacto__c = MGAgenciaContactPreferenceResolver.resolve(request.contact_preference),
+            Forma_de_Pago__c = String.isBlank(request.payment_method) ? null : request.payment_method.trim(),
+            Plazo_de_Compra__c = String.isBlank(request.purchase_timeline) ? null : request.purchase_timeline.trim(),
+            Entrega_su_Auto__c = String.isBlank(request.trade_in) ? null : request.trade_in.trim(),
             Status = config.Initial_Status__c,
             // Org VR ValidarTareaEstadoContactado exempts 'Formulario Meta'/'Prospecto' but not
             // the new initial status; it passes when Estatus__c = 'No contactado', which is the
@@ -129,6 +142,20 @@ public with sharing class MGAgenciaLeadService {
             Duplicated_Lead__c = duplicate.isDuplicate,
             Duplicate_Reason__c = duplicate.reason
         );
+    }
+
+    /**
+     * @description Applies test_drive_requested as a simple pass-through when the field is
+     *              present in the request. TestDriveRequested__c is nillable=false with a
+     *              default of false, so an omitted field is left unset here rather than
+     *              explicitly assigned null, letting the platform default apply normally.
+     * @param lead unsaved Lead built by buildLead
+     * @param request parsed request DTO
+     */
+    private static void applyOptionalBooleanFields(Lead lead, MGAgenciaLeadRequest request) {
+        if (request.test_drive_requested != null) {
+            lead.TestDriveRequested__c = request.test_drive_requested;
+        }
     }
 
     /**
