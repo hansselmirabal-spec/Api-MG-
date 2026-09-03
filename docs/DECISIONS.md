@@ -112,3 +112,9 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
 - Decision: the phone as received from MGAgencia (before normalization) is stored as free text in `Tel_fono_Meta__c`, in addition to the normalized value stored in `MobilePhone` (used for duplicate matching, unchanged).
 - Reason: preserves the raw external value for traceability, matching the existing precedent pattern in the org.
 - Impact: `NebulaPhoneNormalizer`/service writes both fields on Lead creation.
+
+## 2026-09-03 — Decision 7 amended: use Sucursal_Seleccionada_Meta__c instead of Nearest_Branch__c
+
+- Decision: `branch_code` now resolves to `Sucursal_Seleccionada_Meta__c` (free text), not `Nearest_Branch__c` (picklist), per explicit business direction — this is the field the business already uses to route/report branch data end-to-end, matching the MGAgencia form methodology (same 4-branch catalog: Asunción, Coronel Oviedo, Ciudad del Este, Encarnación).
+- Verified safe: flow `Asignacion_Lead_a_Vendedor` reads `Sucursal_Seleccionada_Meta__c` but only fires when `OwnerId` = queue "Reglas Meta" (`00GTH00000A3F9e2AF`). MGAgencia Leads are always owned by queue "MGAgencia Leads" (`00GTH00000BEGpl2AH`) — the flow never triggers for this integration, so populating the field is inert beyond storage.
+- Impact: resolver writes the branch label as free text (still validated against the closed 4-value catalog before writing); `Nearest_Branch__c` is no longer set by this integration.
