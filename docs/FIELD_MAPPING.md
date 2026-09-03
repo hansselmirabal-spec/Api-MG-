@@ -285,3 +285,26 @@ Applied to every API-created Lead; MGAgencia sends none of these.
 12. `Conf_Parameters__c` holds credentials for other integrations; the MGAgencia permission set must not grant access to it.
 
 Open questions for the business are all tagged **PENDING BUSINESS DECISION** above: external lead id, campaign identification, dealer semantics, vehicle catalog mapping, initial `Status`/`LeadSource`/record type/`Family__c`, mandatory contact field, duplicate rule, ownership/assignment, status query endpoint.
+
+## 12. MGAgencia UAT feedback — financing and test-drive fields (2026-09-03)
+
+MGAgencia's provider UAT completed successfully (18/18, including a real synced test lead). They flagged two additional questions in their own lead form — financing and test-drive interest — for which we had not yet provided field names. Candidate Lead fields identified by inspecting `condor-qas`:
+
+**Test drive**
+| Field | Label | Type |
+|---|---|---|
+| `TestDriveRequested__c` | Test drive solicitado | boolean |
+| `Tipo_de_test_drive__c` | Tipo de test drive | picklist |
+
+`Resultado_del_test_drive__c`, `Fecha_de_test_drive__c`, `Comentarios_del_test_drive__c` etc. are outcome/scheduling fields owned by the sales process after the Lead is created — not inputs the API should accept.
+
+**Financing**
+| Field | Label | Type |
+|---|---|---|
+| `Forma_de_Pago__c` | Forma de Pago | text (free text, no picklist values retrieved yet — needs confirmation) |
+| `Plazo_de_Compra__c` | Plazo de Compra | text (free text) |
+| `Entrega_su_Auto__c` | Entrega su Auto (trade-in) | text |
+
+Both `Forma_de_Pago__c` and `Plazo_de_Compra__c` are plain text fields in this org, not picklists — need to confirm with business whether MGAgencia's form uses fixed catalog values (financing type, term in months) that should map to a controlled picklist, or free text is acceptable.
+
+**PENDING BUSINESS DECISION**: confirm exact field names/labels MGAgencia's form uses for financing questions, whether values are free text or from a fixed catalog, and whether `test_drive_requested` (boolean) plus `test_drive_type` should be added to the v1 contract now or deferred to a v1.1 addendum.
