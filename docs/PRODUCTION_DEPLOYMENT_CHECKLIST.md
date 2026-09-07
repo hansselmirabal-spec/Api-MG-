@@ -152,7 +152,46 @@ Each step is a separate go/no-go — do not batch approvals.
    `NOT($Permission.MGAgencia_Integration_Bypass)` clause. Do not deploy the
    version currently committed as-is. Not yet deployed to `mi-org` itself —
    still pending as part of step 4/5's component list.
-4. **Validate-only deploy** (`sf project deploy start --dry-run` / `--tests`)
+4-5. ✅ **DONE (2026-09-07)**. Discovered mid-execution: a single
+   `deploy validate`/`deploy start` covering the whole component list
+   below cannot pass its own Apex tests on a *first-ever* deploy to
+   `mi-org` — `MGAgencia_Integration`'s FLS grant to the deploying user
+   doesn't exist yet (PermissionSetAssignment is data, not metadata, and
+   can't be created inside the same deploy transaction that first
+   creates the permission set), so every USER_MODE Lead insert in the
+   test suite returns a masked 500 (same root cause as the
+   already-documented condor-qas gotcha in `TEST_PLAN.md` §3.1, just
+   hitting a brand-new org for the first time). Resolved by splitting
+   into two real deploys with a permission-set assignment in between:
+
+   - **Deploy 1** (`0AfTS000001wtMv0AI`, succeeded): fields, `Lead`
+     validation rule fix, Log object + fields, CMDT object + fields +
+     Default record, queue, assignment rule, `MGAgencia_Integration`
+     permission set **with its `classAccesses` block temporarily
+     stripped** (it references `MGAgenciaLeadRestResource`, which
+     doesn't exist yet — chicken-and-egg), custom permission.
+     `--test-level RunSpecifiedTests` with an unrelated test (no Apex
+     in this payload, so no coverage is actually required/checked).
+   - **Assign** `MGAgencia_Integration` to the deploying admin user
+     (`sf org assign permset -o mi-org -n MGAgencia_Integration`) — a
+     data operation, not metadata, done here so it exists ahead of
+     Deploy 2's test run.
+   - **Deploy 2** (`0AfTS000001wtQ90AI`, succeeded): the 16 Apex
+     classes + the **full** `MGAgencia_Integration` permission set
+     (with `classAccesses` restored — the class now exists) —
+     `--test-level RunSpecifiedTests --tests MGAgenciaLeadRestResourceTest
+     --tests MGAgenciaLeadServiceTest --tests MGAgenciaPhoneNormalizerTest`.
+     **27/27 PASS**, all real, against `mi-org`.
+
+   If this whole checklist is ever re-run against a *new* org from
+   scratch (not `mi-org` a second time — the permission set + FLS
+   already exist there now), expect this same two-wave split to be
+   necessary again.
+
+   Original plan (superseded by the above; kept for the full component
+   list reference):
+
+4. ~~**Validate-only deploy**~~ (`sf project deploy start --dry-run` / `--tests`)
    of an **explicit component list** — not the whole `force-app` tree (§0):
    - The 16 `force-app/main/default/classes/MGAgencia*` classes.
    - The 3 missing Lead fields (`External_Lead_Id__c`, `Duplicated_Lead__c`,
@@ -172,7 +211,7 @@ Each step is a separate go/no-go — do not batch approvals.
      file as committed (run-as user is sandbox-specific, §0).
    - All Apex tests must run (mandatory for a production deploy) and pass —
      same 27/27 bar as `condor-qas`.
-5. **Real deploy**, only after step 4's dry run is clean and you confirm.
+5. ~~**Real deploy**~~, only after step 4's dry run is clean and you confirm.
 6. **Create the production integration user**
    (`docs/ADMIN_FOLLOWUPS.md` #3): profile "Minimum Access - API Only
    Integrations", permission set `MGAgencia_Integration`, permission set
