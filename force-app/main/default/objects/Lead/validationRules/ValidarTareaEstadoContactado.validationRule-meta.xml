@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>ValidarTareaEstadoContactado</fullName>
+    <active>true</active>
+    <errorConditionFormula>AND(
+NOT(ISPICKVAL(Status, &apos;Formulario Meta&apos;)),
+NOT(ISPICKVAL(Status, &apos;Formulario MGAgencia&apos;)),
+NOT(ISPICKVAL(Status, &apos;Prospecto&apos;)),
+NOT(ISPICKVAL(Estatus__c, &apos;No contactado&apos;)),
+NOT(ISPICKVAL(Status, &apos;Convertido&apos;)),
+ISNULL(LastActivityDate),
+$Profile.Name != &apos;Pre-calificación&apos;
+)</errorConditionFormula>
+    <errorDisplayField>EconomicActivity__c</errorDisplayField>
+    <errorMessage>Para pasar de estado se debe registrar alguna actividad.</errorMessage>
+</ValidationRule>
