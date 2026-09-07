@@ -212,7 +212,16 @@ Each step is a separate go/no-go — do not batch approvals.
    - All Apex tests must run (mandatory for a production deploy) and pass —
      same 27/27 bar as `condor-qas`.
 5. ~~**Real deploy**~~, only after step 4's dry run is clean and you confirm.
-6. **Create the production integration user**
+6. ✅ **DONE (2026-09-07)** — `mgagencia.integration@condor.com.py`
+   (Id `005TS00000B2PwrYAF`), profile "Minimum Access - API Only
+   Integrations" (userLicense "Salesforce Integration" — free, no paid
+   seat consumed), PSL `SalesforceAPIIntegrationPSL` + permission set
+   `MGAgencia_Integration` assigned. **Order matters**: the PSL must be
+   assigned *before* the permission set — `MGAgencia_Integration` grants
+   Read on `Campaign`, which the base "Salesforce Integration" license
+   alone doesn't support (`La licencia de usuario no admite el permiso:
+   Leer Campaign`) until the PSL is present. **Create the production
+   integration user**
    (`docs/ADMIN_FOLLOWUPS.md` #3): profile "Minimum Access - API Only
    Integrations", permission set `MGAgencia_Integration`, permission set
    license "Salesforce API Integration".

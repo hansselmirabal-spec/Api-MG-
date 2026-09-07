@@ -32,13 +32,15 @@ cutover and for hardening the sandbox.
 
 ## 3. Production integration user
 
-- **What**: the sandbox user `mgagencia.integration@condor.com.py.qas.mga`
-  exists; production needs its equivalent.
-- **Action**: create a production user with profile
-  "Minimum Access - API Only Integrations", permission set
-  `MGAgencia_Integration`, and permission set license "Salesforce API
-  Integration". No admin permissions.
-- **Priority**: high — required for production cutover.
+- **Status: DONE (2026-09-07)** — `mgagencia.integration@condor.com.py`
+  (`005TS00000B2PwrYAF`), profile "Minimum Access - API Only
+  Integrations", PSL `SalesforceAPIIntegrationPSL` and permission set
+  `MGAgencia_Integration` assigned (PSL first — required for the
+  permission set's `Campaign` read grant to apply). No admin
+  permissions. See `docs/PRODUCTION_DEPLOYMENT_CHECKLIST.md` §2 step 6.
+- **What (original)**: the sandbox user
+  `mgagencia.integration@condor.com.py.qas.mga` exists; production
+  needs its equivalent.
 
 ## 4. Sandbox E2E network access (temporary, Phase 7)
 
