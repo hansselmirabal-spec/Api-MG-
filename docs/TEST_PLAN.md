@@ -1,5 +1,14 @@
 # TEST_PLAN
 
+**Amendment (2026-09-07)**: Decision 2 was changed after this plan was
+executed — API-created Leads now get `Status = 'Formulario Meta'` (reused)
+instead of the new `Formulario MGAgencia` value referenced throughout this
+document. Every PASS result below was real, but was verified against the old
+value. Re-run `MGAgenciaLeadRestResourceTest` and
+`MGAgenciaLeadServiceTest` against `condor-qas` before this reaches `mi-org`
+to confirm the suite still passes with `Formulario Meta`. See
+`docs/DECISIONS.md`.
+
 Status: **EXECUTED — Phases 6 and 7** (2026-08-31 / 2026-09-01). Target org: sandbox `condor-qas`.
 Test classes: `MGAgenciaLeadRestResourceTest`, `MGAgenciaLeadServiceTest`
 (`force-app/main/default/classes/`). Behavior-first: every scenario asserts

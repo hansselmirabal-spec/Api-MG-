@@ -41,7 +41,7 @@
             <criteriaItems>
                 <field>Lead.Status</field>
                 <operation>equals</operation>
-                <value>Formulario MGAgencia</value>
+                <value>Formulario Meta</value>
             </criteriaItems>
         </ruleEntry>
     </assignmentRule>

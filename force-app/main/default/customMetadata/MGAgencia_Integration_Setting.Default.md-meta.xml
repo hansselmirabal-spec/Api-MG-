@@ -16,7 +16,7 @@
     </values>
     <values>
         <field>Initial_Status__c</field>
-        <value xsi:type="xsd:string">Formulario MGAgencia</value>
+        <value xsi:type="xsd:string">Formulario Meta</value>
     </values>
     <values>
         <field>Lead_Source__c</field>
