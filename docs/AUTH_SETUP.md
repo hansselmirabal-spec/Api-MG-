@@ -101,14 +101,32 @@ Tokens expire per the org session policy; MGAgencia must request a new token on
 
 ## 8. Production checklist
 
-- [ ] Create the production integration user (same profile, permission set,
-      PSL as sandbox; production username, e.g.
-      `mgagencia.integration@condor.com.py`).
-- [ ] Deploy the MGAgencia metadata package (classes, fields, queue, assignment
-      rule entry, custom permission, permission set, CMDT) to production.
-- [ ] Create the Connected App per §2–§4 in production.
+- [x] Create the production integration user (2026-09-07) —
+      `mgagencia.integration@condor.com.py`, same profile/PSL as sandbox.
+- [x] Deploy the MGAgencia metadata package to production (2026-09-07,
+      two-wave deploy — see `docs/PRODUCTION_DEPLOYMENT_CHECKLIST.md` §2
+      steps 4-5).
+- [x] Create the Connected App per §2–§4 in production (2026-09-07) — with
+      one platform change: `mi-org` no longer has the classic "New
+      Connected App" button; use **App Manager → Nueva aplicación
+      cliente externa** instead. See gotcha #5 below.
 - [ ] Hand over credentials per §5.
 - [ ] Complete the admin follow-ups in `docs/ADMIN_FOLLOWUPS.md`.
+
+## 9. Gotcha #5 (production, 2026-09-07) — External Client App replaces classic Connected App creation
+
+`mi-org`'s App Manager only offers "Nueva aplicación Lightning" and "Nueva
+aplicación cliente externa" — no plain "New Connected App" button. Salesforce
+has moved new-app creation to the External Client App Manager
+(`ManageExternalClientApplication`). It still supports Client Credentials
+Flow, but with a UI quirk: the "Activar flujo de credenciales de cliente"
+checkbox on the **creation** form is separate from the one under the app's
+**Políticas → Modificar** tab. Checking it at creation time is not enough —
+go back into Políticas → Modificar and check it there too; only then does
+the **"Ejecutar como" (Run As)** field appear to set the run-as user.
+Existing Connected Apps (pre-dating this change) remain manageable under
+Setup → App Manager → Gestionar aplicaciones conectadas, but that page has
+no "New" option — it's read/manage-only for already-existing apps.
 
 ## Sandbox provisioning status (2026-09-01)
 
