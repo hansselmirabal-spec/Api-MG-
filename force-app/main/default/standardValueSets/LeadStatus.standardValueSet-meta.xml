@@ -8,12 +8,6 @@
         <converted>false</converted>
     </standardValue>
     <standardValue>
-        <fullName>Formulario MGAgencia</fullName>
-        <default>false</default>
-        <label>Formulario MGAgencia</label>
-        <converted>false</converted>
-    </standardValue>
-    <standardValue>
         <fullName>Lead MQL</fullName>
         <default>false</default>
         <label>Lead MQL</label>

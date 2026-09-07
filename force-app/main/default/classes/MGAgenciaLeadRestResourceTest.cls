@@ -58,7 +58,7 @@ private class MGAgenciaLeadRestResourceTest {
         System.assertEquals('AUTOMÓVILES MG', created.Family__c, 'Configured family');
         System.assertEquals('MG', created.Brand__c, 'Configured brand');
         System.assertEquals('MGAgencia', created.LeadSource, 'Configured lead source');
-        System.assertEquals('Formulario MGAgencia', created.Status, 'Configured initial status');
+        System.assertEquals('Formulario Meta', created.Status, 'Configured initial status');
         System.assertEquals('Asunción', created.Sucursal_Seleccionada_Meta__c,
             'branch_code resolved to Sucursal_Seleccionada_Meta__c label (Decision 7 amendment)');
         System.assertEquals(null, created.Nearest_Branch__c,

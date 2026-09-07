@@ -41,6 +41,21 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
 - Decision: new `Lead.Status` value `Formulario MGAgencia` as the initial status of API-created Leads (distribution flow trigger; moves to the standard pipeline on assignment) and new `LeadSource` value `MGAgencia`.
 - Reason: replicates the Meta pattern (`Formulario Meta`), avoiding `Prospecto`-stage validation rules and silent vehicle defaults; enables filtering and reporting.
 - Impact: picklist changes on Status and LeadSource; distribution flow keys on the new status.
+- **Amended 2026-09-07**: the new `Status` value is dropped. API-created Leads
+  reuse the existing `Formulario Meta` status instead of a dedicated
+  `Formulario MGAgencia` value — the `LeadSource = 'MGAgencia'` value (still
+  new, unchanged) remains the sole differentiator for routing, filtering and
+  reporting. Reason: business decision to avoid growing the Status picklist;
+  `Formulario Meta` already sits outside the `Prospecto`-stage validations
+  Decision 2 was written to avoid, so the original rationale still holds.
+  Impact: `MGAgencia_Integration_Setting__mdt` CMDT default, the
+  `MGAgencia_Leads` assignment rule entry, and the
+  `MGAgenciaLeadRestResourceTest` assertion were updated to expect
+  `Formulario Meta`. Re-verify UAT in `condor-qas` against this value before
+  it reaches `mi-org`. Open risk not yet checked: any org automation/reports
+  keyed specifically on `Status = 'Formulario Meta'` for the Meta pipeline
+  now also fires for MGAgencia Leads sharing that status — not audited as
+  part of this amendment.
 
 ## 2026-08-31 — Fixed record type, family and brand (Decision 3)
 

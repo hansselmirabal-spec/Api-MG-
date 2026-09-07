@@ -7,14 +7,20 @@ cutover and for hardening the sandbox.
 
 ## 1. Validation rule `ValidarTareaEstadoContactado` exemption (carried from Phase 6)
 
-- **What**: the VR exempts `Formulario Meta` / `Prospecto` but not the new
-  `Formulario MGAgencia` status, so it blocks API inserts. The API works around
-  it today by setting `Estatus__c = 'No contactado'` (the factual pre-contact
-  state), which the rule treats as valid.
-- **Action**: add `NOT(ISPICKVAL(Status, 'Formulario MGAgencia'))` to the rule,
-  mirroring the Meta exemption. Otherwise a later manual edit of an
-  uncontacted MGAgencia lead may trip the rule once `Estatus__c` changes.
-- **Priority**: medium (workaround holds for creation; risk is later edits).
+- **Status: MOOT (2026-09-07)** — Decision 2 was amended to reuse the
+  existing `Formulario Meta` status instead of adding a new
+  `Formulario MGAgencia` value (see `docs/DECISIONS.md`). The VR's existing
+  `NOT(ISPICKVAL(Status, 'Formulario Meta'))` exemption already covers
+  MGAgencia Leads directly — no rule edit needed. `mi-org`'s deployed copy of
+  the rule (2026-09-07, checklist §2 step 2) still carries a dead
+  `NOT(ISPICKVAL(Status, 'Formulario MGAgencia'))` clause referencing a value
+  that will now never exist; harmless (evaluates to a no-op), optional
+  cleanup only.
+- **What (original, now superseded)**: the VR exempts `Formulario Meta` /
+  `Prospecto` but not the new `Formulario MGAgencia` status, so it blocks API
+  inserts. The API works around it today by setting
+  `Estatus__c = 'No contactado'` (the factual pre-contact state), which the
+  rule treats as valid.
 
 ## 2. OAuth 2.0 Client Credentials Connected App (Decision 8)
 

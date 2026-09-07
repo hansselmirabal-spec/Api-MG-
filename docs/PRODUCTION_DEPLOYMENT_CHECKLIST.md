@@ -21,7 +21,7 @@ nothing written).
 | Component | Shared with | Diff vs. current `mi-org` | Verdict |
 |---|---|---|---|
 | `standardValueSets/LeadSource.standardValueSet-meta.xml` | every Lead in the org | Repo = prod's 23 current values + `MGAgencia`. No values missing or reordered. | Safe in content, but **don't deploy this file** — add the value via Setup UI instead (§2 step 1). A file-based deploy risks clobbering a value added in prod after this file was last retrieved. |
-| `standardValueSets/LeadStatus.standardValueSet-meta.xml` | every Lead in the org | Repo = prod's 8 current values + `Formulario MGAgencia`. Same shape as above. | Same as above — add via UI, don't deploy the file. |
+| `standardValueSets/LeadStatus.standardValueSet-meta.xml` | every Lead in the org | **Amended 2026-09-07**: `Formulario MGAgencia` was dropped (Decision 2 amendment) — repo now matches prod's 8 current values exactly, no addition. | No longer needed for MGAgencia. Still don't deploy this file speculatively — no reason to touch it. |
 | `objects/Lead/validationRules/FirstNameRequired.validationRule-meta.xml` | every Lead | **Byte-identical** to prod. | Safe, no-op if deployed. |
 | `objects/Lead/validationRules/Segmento_y_o_Modelo_vacio_o_otros.validationRule-meta.xml` | every Lead (Prospecto-stage validation) | Only whitespace/formatting differs (prettier-apex reformat). Formula logic identical. | Safe, cosmetic-only if deployed. |
 | `objects/Lead/validationRules/CodigoVendedorAsignacion.validationRule-meta.xml` | every Lead (vendor-code requirement on insert) | **Real discrepancy, not cosmetic.** Prod's current admin exemption is `$UserRole.Name != 'Administrador del sistema'` (role-based). The repo's version has that rewritten to `$Profile.Name != 'Administrador del sistema'` (profile-based) **and** adds `NOT($Permission.MGAgencia_Integration_Bypass)`. | 🔴 **Do not deploy as committed.** Deploying this file would silently change who's exempt from the vendor-code rule for every Lead in the org, not just add the MGAgencia bypass. Fix: rebuild this file from prod's current formula (role-based check) plus only the `NOT($Permission.MGAgencia_Integration_Bypass)` addition, before it's ever deployed to `mi-org`. |
@@ -70,7 +70,7 @@ Nothing MGAgencia-specific has been deployed to `mi-org` yet. This is a
 | `Lead.External_Lead_Id__c` | core field, used by duplicate matching (Decision 4) |
 | `Lead.Duplicated_Lead__c` | core field (Decision 4) |
 | `Lead.Duplicate_Reason__c` | core field (Decision 4) |
-| `Lead.Status` value `Formulario MGAgencia` | **picklist value missing** — only `Formulario Meta` exists today (Decision 2) |
+| ~~`Lead.Status` value `Formulario MGAgencia`~~ | **Dropped (amended 2026-09-07)** — reuses existing `Formulario Meta` instead, no new value needed. |
 | `LeadSource` value `MGAgencia` | **picklist value missing** (Decision 2) |
 | Object `MGAgencia_Integration_Log__c` | entire object, not deployed |
 | Custom Metadata Type `MGAgencia_Integration_Setting__mdt` | not deployed (drives Family__c/Brand__c defaults, Decision 3) |
@@ -88,10 +88,12 @@ Nothing MGAgencia-specific has been deployed to `mi-org` yet. This is a
 
 Each step is a separate go/no-go — do not batch approvals.
 
-1. **Add the two picklist values** (Setup → Object Manager → Lead):
-   - `Status`: new value `Formulario MGAgencia` (mirror how `Formulario Meta`
-     is configured — same record-type visibility, no default).
+1. **Add the picklist value** (Setup → Object Manager → Lead):
    - `LeadSource`: new value `MGAgencia`.
+   - ~~`Status`: new value `Formulario MGAgencia`~~ — **dropped (amended
+     2026-09-07)**. API-created Leads now reuse the existing `Formulario
+     Meta` status; no new Status value needed. See `docs/DECISIONS.md`
+     Decision 2 amendment.
 2. ✅ **DONE (2026-09-07)** — Deploy ID `0AfTS000001wsyj0AA`, verified
    active via Tooling API. **Create the validation rule**
    `ValidarTareaEstadoContactado` on Lead in `mi-org` (it does not exist
@@ -111,6 +113,13 @@ Each step is a separate go/no-go — do not batch approvals.
    ```
    Error message: `Para pasar de estado se debe registrar alguna actividad.`
    Error display field: `EconomicActivity__c`.
+
+   **Note (2026-09-07, after Decision 2 amendment):** the
+   `NOT(ISPICKVAL(Status, 'Formulario MGAgencia'))` clause above is now dead
+   — that Status value will never exist — but harmless (evaluates false,
+   no-op). Already deployed to `mi-org` as-is; not worth a redeploy just to
+   clean it up. MGAgencia Leads are exempted via the existing
+   `NOT(ISPICKVAL(Status, 'Formulario Meta'))` clause instead.
 
    **Known pre-existing gap (found 2026-09-07 via `sf project deploy
    validate --test-level RunLocalTests` dry run against `mi-org`, and
