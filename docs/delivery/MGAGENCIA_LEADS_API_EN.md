@@ -1,7 +1,9 @@
 # MGAgencia → Salesforce Leads API — Functional Specification v1.0 (draft for provider review)
 
-**Date:** 2026-09-01
+**Date:** 2026-09-03
 **Prepared by:** Grupo Cóndor
+
+**What's new (2026-09-03):** 6 optional request fields were added, surfaced by MGAgencia's UAT: `interest_model`, `contact_preference`, `payment_method`, `purchase_timeline`, `trade_in`, and `test_drive_requested`. These are non-breaking additions within v1 (§1) — no changes required for existing integrations.
 
 ---
 
@@ -110,6 +112,12 @@ One JSON object per request. No batch/array wrapping. Unknown properties sent by
 | `email` | string | No | — | Standard email format | Optional contact email. | `"maria.gonzalez@example.com"` |
 | `branch_code` | string | No | — | One of the catalog values below | Preferred Cóndor branch. Omitting the field is valid; an unrecognized value is rejected. | `"ASUNCION"` |
 | `external_lead_id` | string | No *(see open questions)* | — | Free text | Unique identifier MGAgencia may assign to a lead. Not required today; whether it becomes required and used as an idempotency key is open — see §10. | `"neb-2026-0000123"` |
+| `interest_model` | string | No | 80 characters | Free text | Vehicle of interest (brand/model/version/year), sent as-is by MGAgencia. No catalog — any text within the max length is accepted. | `"Toyota Hilux 2026"` |
+| `contact_preference` | string | No | — | One of the catalog values below | Customer's preferred contact channel. | `"WhatsApp"` |
+| `payment_method` | string | No | 50 characters | Free text | Payment/financing method indicated by the customer. | `"financiacion_bancaria"` |
+| `purchase_timeline` | string | No | 50 characters | Free text | Purchase timeline estimated by the customer. | `"inmediatamente"` |
+| `trade_in` | string | No | 50 characters | Free text | Whether the customer is trading in their current vehicle. | `"si"` |
+| `test_drive_requested` | boolean | No | — | `true` / `false` | Whether the customer requested a test drive. Stored as received. | `true` |
 
 **`branch_code` catalog**
 
@@ -120,6 +128,16 @@ One JSON object per request. No batch/array wrapping. Unknown properties sent by
 | `CORONEL_OVIEDO` |
 | `ENCARNACION` |
 
+**`contact_preference` catalog**
+
+| Value |
+|---|
+| `Correo Electrónico` |
+| `WhatsApp` |
+| `Teléfono` |
+
+> Values must match exactly (case and accents included). A value outside this catalog is rejected with `422` (`UNKNOWN_VALUE`); omitting the field is valid.
+
 ### 4.1 Example request
 
 ```json
@@ -129,9 +147,17 @@ One JSON object per request. No batch/array wrapping. Unknown properties sent by
   "phone": "0981123456",
   "email": "maria.gonzalez@example.com",
   "branch_code": "ASUNCION",
-  "external_lead_id": "neb-2026-0000123"
+  "external_lead_id": "neb-2026-0000123",
+  "interest_model": "Toyota Hilux 2026",
+  "contact_preference": "WhatsApp",
+  "payment_method": "financiacion_bancaria",
+  "purchase_timeline": "inmediatamente",
+  "trade_in": "si",
+  "test_drive_requested": true
 }
 ```
+
+Every field in this section except `interest_model`, `payment_method`, `purchase_timeline`, and `trade_in` has no declared length limit; those four return `422` (`INVALID_FORMAT`) when a value exceeds the stated maximum, rather than silently truncating it.
 
 ---
 
@@ -259,7 +285,7 @@ Run the following scenarios against the sandbox environment before go-live:
 |---|---|---|---|
 | 1 | Can you send a unique `external_lead_id` per lead? | If confirmed, it becomes a **required** field and the idempotency key for safe retries (avoiding duplicate creation on resubmission). | Yes — MGAgencia assigns and sends a stable, unique `external_lead_id` per lead. |
 | 2 | How do you identify advertising campaigns? | Needed to attribute leads to campaigns for reporting. | MGAgencia sends a `campaign_code` from a catalog agreed with Grupo Cóndor; we resolve it internally. |
-| 3 | Do you need to send the vehicle model of interest? | Needed to route/report leads by product interest. | MGAgencia sends an `interest_model` value from a catalog Grupo Cóndor provides. |
+| 3 | ~~Do you need to send the vehicle model of interest?~~ **Resolved (2026-09-03).** | — | `interest_model` was implemented as free text (max 80 characters, no catalog) — see §4. |
 | 4 | Do you need to query lead status after creation, or is the creation response enough? | Determines whether a `GET` status endpoint is needed in a future phase. | The synchronous creation response (`integration_id`, `duplicated`) is sufficient for v1; no `GET` endpoint planned unless confirmed otherwise. |
 | 5 | What request volume do you expect (leads/day, peak rate)? | Needed to size the endpoint and define rate limits. | Please share expected average and peak volumes. |
 

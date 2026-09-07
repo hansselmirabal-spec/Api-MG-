@@ -342,6 +342,209 @@
           "raw": "{\n  \"first_name\": \"Maria\",\n  \"last_name\": \"Gonzalez UAT6\",\n  \"phone\": \"0981000333\"\n}"
         }
       }
+    },
+    {
+      "name": "UAT-7 - Invalid contact_preference -> 422 UNKNOWN_VALUE",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 422', () => pm.response.to.have.status(422));",
+              "const b = pm.response.json();",
+              "pm.test('code VALIDATION_ERROR', () => pm.expect(b.code).to.eql('VALIDATION_ERROR'));",
+              "const err = (b.errors||[]).find(e => e.field === 'contact_preference');",
+              "pm.test('reports contact_preference', () => pm.expect(err).to.not.be.undefined);",
+              "pm.test('UNKNOWN_VALUE for contact_preference', () => pm.expect(err && err.code).to.eql('UNKNOWN_VALUE'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/services/apexrest/mgagencia/v1/leads",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "services",
+            "apexrest",
+            "mgagencia",
+            "v1",
+            "leads"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"Maria\",\n  \"last_name\": \"Gonzalez UAT7\",\n  \"phone\": \"0981{{$randomInt}}444\",\n  \"contact_preference\": \"whatsapp\"\n}"
+        }
+      }
+    },
+    {
+      "name": "UAT-8 - Invalid email format -> 422 INVALID_FORMAT",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 422', () => pm.response.to.have.status(422));",
+              "const b = pm.response.json();",
+              "pm.test('code VALIDATION_ERROR', () => pm.expect(b.code).to.eql('VALIDATION_ERROR'));",
+              "const err = (b.errors||[]).find(e => e.field === 'email');",
+              "pm.test('reports email', () => pm.expect(err).to.not.be.undefined);",
+              "pm.test('INVALID_FORMAT for email', () => pm.expect(err && err.code).to.eql('INVALID_FORMAT'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/services/apexrest/mgagencia/v1/leads",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "services",
+            "apexrest",
+            "mgagencia",
+            "v1",
+            "leads"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"Maria\",\n  \"last_name\": \"Gonzalez UAT8\",\n  \"phone\": \"0981{{$randomInt}}555\",\n  \"email\": \"no-es-un-email\"\n}"
+        }
+      }
+    },
+    {
+      "name": "UAT-9 - interest_model over 80 chars -> 422 INVALID_FORMAT",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 422', () => pm.response.to.have.status(422));",
+              "const b = pm.response.json();",
+              "pm.test('code VALIDATION_ERROR', () => pm.expect(b.code).to.eql('VALIDATION_ERROR'));",
+              "const err = (b.errors||[]).find(e => e.field === 'interest_model');",
+              "pm.test('reports interest_model', () => pm.expect(err).to.not.be.undefined);",
+              "pm.test('INVALID_FORMAT for interest_model', () => pm.expect(err && err.code).to.eql('INVALID_FORMAT'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/services/apexrest/mgagencia/v1/leads",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "services",
+            "apexrest",
+            "mgagencia",
+            "v1",
+            "leads"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"Maria\",\n  \"last_name\": \"Gonzalez UAT9\",\n  \"phone\": \"0981{{$randomInt}}666\",\n  \"interest_model\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"\n}"
+        }
+      }
+    },
+    {
+      "name": "UAT-10 - Valid token without permission set -> 403",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const t = pm.environment.get('unauthorized_access_token') || pm.variables.get('unauthorized_access_token');",
+              "if (!t || String(t).indexOf('SET_MANUALLY') >= 0) {",
+              "  console.error('unauthorized_access_token is not set. Get a token for a user WITHOUT the MGAgencia_Integration permission set and set it as an environment variable to run this request.');",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{unauthorized_access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/services/apexrest/mgagencia/v1/leads",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "services",
+            "apexrest",
+            "mgagencia",
+            "v1",
+            "leads"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"Maria\",\n  \"last_name\": \"Gonzalez UAT10\",\n  \"phone\": \"0981000777\"\n}"
+        }
+      }
     }
   ],
   "variable": [
@@ -356,6 +559,10 @@
     {
       "key": "client_id",
       "value": "3MVG9vhwfqQnEVhCV7ZTiqF27KM0bwtG1WJUI6fGMDcV7SPom7h7wFiH4_6YPw7W8OjtNpq26QIsbMINQvde4"
+    },
+    {
+      "key": "unauthorized_access_token",
+      "value": "SET_MANUALLY_TOKEN_FROM_USER_WITHOUT_PERMISSION_SET"
     }
   ]
 }

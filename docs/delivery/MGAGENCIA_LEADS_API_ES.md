@@ -1,7 +1,9 @@
 # MGAgencia → Salesforce Leads API — Especificación Funcional v1.0 (borrador para revisión del proveedor)
 
-**Fecha:** 2026-09-01
+**Fecha:** 2026-09-03
 **Elaborado por:** Grupo Cóndor
+
+**Novedades (2026-09-03):** se agregaron 6 campos opcionales de la solicitud, surgidos del UAT de MGAgencia: `interest_model`, `contact_preference`, `payment_method`, `purchase_timeline`, `trade_in` y `test_drive_requested`. Son adiciones no disruptivas dentro de v1 (§1) — no requieren cambios en integraciones existentes.
 
 ---
 
@@ -110,6 +112,12 @@ Un objeto JSON por solicitud. Sin agrupación por lote/arreglo. Las propiedades 
 | `email` | string | No | — | Formato de correo electrónico estándar | Correo de contacto opcional. | `"maria.gonzalez@example.com"` |
 | `branch_code` | string | No | — | Uno de los valores de catálogo indicados abajo | Sucursal de Cóndor preferida. Omitir el campo es válido; un valor no reconocido es rechazado. | `"ASUNCION"` |
 | `external_lead_id` | string | No *(ver preguntas abiertas)* | — | Texto libre | Identificador único que MGAgencia puede asignar a un lead. No es obligatorio hoy; si pasará a ser obligatorio y usarse como clave de idempotencia está abierto — ver §10. | `"neb-2026-0000123"` |
+| `interest_model` | string | No | 80 caracteres | Texto libre | Vehículo de interés (marca/modelo/versión/año), tal cual lo envía MGAgencia. Sin catálogo — se acepta cualquier texto dentro del largo máximo. | `"Toyota Hilux 2026"` |
+| `contact_preference` | string | No | — | Uno de los valores de catálogo indicados abajo | Canal de contacto preferido por el cliente. | `"WhatsApp"` |
+| `payment_method` | string | No | 50 caracteres | Texto libre | Forma de pago / financiamiento indicada por el cliente. | `"financiacion_bancaria"` |
+| `purchase_timeline` | string | No | 50 caracteres | Texto libre | Plazo de compra estimado por el cliente. | `"inmediatamente"` |
+| `trade_in` | string | No | 50 caracteres | Texto libre | Indica si el cliente entrega su vehículo actual como parte de pago. | `"si"` |
+| `test_drive_requested` | boolean | No | — | `true` / `false` | Si el cliente solicitó una prueba de manejo. Se guarda tal cual se recibe. | `true` |
 
 **Catálogo de `branch_code`**
 
@@ -120,6 +128,16 @@ Un objeto JSON por solicitud. Sin agrupación por lote/arreglo. Las propiedades 
 | `CORONEL_OVIEDO` |
 | `ENCARNACION` |
 
+**Catálogo de `contact_preference`**
+
+| Valor |
+|---|
+| `Correo Electrónico` |
+| `WhatsApp` |
+| `Teléfono` |
+
+> Los valores deben coincidir exactamente (mayúsculas/minúsculas y tildes incluidas). Un valor fuera de este catálogo es rechazado con `422` (`UNKNOWN_VALUE`); omitir el campo es válido.
+
 ### 4.1 Ejemplo de solicitud
 
 ```json
@@ -129,9 +147,17 @@ Un objeto JSON por solicitud. Sin agrupación por lote/arreglo. Las propiedades 
   "phone": "0981123456",
   "email": "maria.gonzalez@example.com",
   "branch_code": "ASUNCION",
-  "external_lead_id": "neb-2026-0000123"
+  "external_lead_id": "neb-2026-0000123",
+  "interest_model": "Toyota Hilux 2026",
+  "contact_preference": "WhatsApp",
+  "payment_method": "financiacion_bancaria",
+  "purchase_timeline": "inmediatamente",
+  "trade_in": "si",
+  "test_drive_requested": true
 }
 ```
+
+Todos los campos de esta sección salvo `interest_model`, `payment_method`, `purchase_timeline` y `trade_in` no tienen límite de longitud declarado; esos cuatro devuelven `422` (`INVALID_FORMAT`) si se envía un valor que excede el máximo indicado, en lugar de truncarlo silenciosamente.
 
 ---
 
@@ -259,7 +285,7 @@ Ejecutar los siguientes escenarios contra el entorno sandbox antes del pase a pr
 |---|---|---|---|
 | 1 | ¿Pueden enviar un `external_lead_id` único por lead? | Si se confirma, pasará a ser un campo **obligatorio** y la clave de idempotencia para reintentos seguros (evitando la creación duplicada al reenviar). | Sí — MGAgencia asigna y envía un `external_lead_id` estable y único por lead. |
 | 2 | ¿Cómo identifican las campañas publicitarias? | Necesario para atribuir leads a campañas en los reportes. | MGAgencia envía un `campaign_code` de un catálogo acordado con Grupo Cóndor; nosotros lo resolvemos internamente. |
-| 3 | ¿Necesitan enviar el modelo de vehículo de interés? | Necesario para enrutar y reportar leads según el interés de producto. | MGAgencia envía un valor `interest_model` de un catálogo que provee Grupo Cóndor. |
+| 3 | ~~¿Necesitan enviar el modelo de vehículo de interés?~~ **Resuelto (2026-09-03).** | — | `interest_model` se implementó como texto libre (máx. 80 caracteres, sin catálogo) — ver §4. |
 | 4 | ¿Necesitan consultar el estado del lead luego de creado, o la respuesta de creación es suficiente? | Determina si se necesita un endpoint `GET` de estado en una fase futura. | La respuesta síncrona de creación (`integration_id`, `duplicated`) es suficiente para v1; no se planea un endpoint `GET` salvo que se confirme lo contrario. |
 | 5 | ¿Qué volumen de solicitudes esperan (leads/día, pico)? | Necesario para dimensionar el endpoint y definir límites de tasa. | Por favor compartir los volúmenes promedio y pico esperados. |
 

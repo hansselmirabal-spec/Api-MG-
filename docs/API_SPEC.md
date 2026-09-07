@@ -70,7 +70,12 @@ array/batch wrapping).
 | `email` | string | Optional | Confirmed | Standard email format when present. |
 | `campaign_code` | string | Unresolved | **PENDING BUSINESS DECISION** | How MGAgencia identifies advertising campaigns is not yet defined. Candidate: an external code that Salesforce resolves internally. Do not treat as available until confirmed. |
 | `branch_code` | string | Optional | Confirmed | Cóndor branch preferred by the customer. Approved catalog: `ASUNCION`, `CIUDAD_DEL_ESTE`, `CORONEL_OVIEDO`, `ENCARNACION`. An unknown value is rejected with 422 (`UNKNOWN_VALUE`); omitting the field is valid. |
-| `interest_model` | string | Unresolved | **PENDING BUSINESS DECISION** | Vehicle of interest (brand/model/version/year). The catalog of accepted values will be provided by us once confirmed; MGAgencia must not send free-form values ahead of that catalog. |
+| `interest_model` | string | Optional | Confirmed (2026-09-03) | Vehicle of interest (brand/model/version/year), free text as sent by MGAgencia. Max 80 characters — exceeding it is rejected with 422 (`INVALID_FORMAT`) rather than silently truncated. No catalog. |
+| `contact_preference` | string | Optional | Confirmed (2026-09-03) | Customer's preferred contact channel. Must match one of 3 Salesforce picklist values exactly (case/accents included): `Correo Electrónico`, `WhatsApp`, `Teléfono`. An unknown value is rejected with 422 (`UNKNOWN_VALUE`). |
+| `payment_method` | string | Optional | Confirmed (2026-09-03) | Financing/payment method, free text as sent by MGAgencia. Max 50 characters — same overflow behavior as `interest_model`. |
+| `purchase_timeline` | string | Optional | Confirmed (2026-09-03) | Purchase timeline, free text. Max 50 characters — same overflow behavior as `interest_model`. |
+| `trade_in` | string | Optional | Confirmed (2026-09-03) | Trade-in intent, free text. Max 50 characters — same overflow behavior as `interest_model`. |
+| `test_drive_requested` | boolean | Optional | Confirmed (2026-09-03) | Whether a test drive was requested. Simple pass-through, no validation. |
 
 ### 3.1 Example request
 
@@ -83,7 +88,12 @@ array/batch wrapping).
   "email": "maria.gonzalez@example.com",
   "campaign_code": "TBD",
   "branch_code": "ASUNCION",
-  "interest_model": "TBD"
+  "interest_model": "Toyota Hilux 2026",
+  "contact_preference": "WhatsApp",
+  "payment_method": "financiacion_bancaria",
+  "purchase_timeline": "inmediatamente",
+  "trade_in": "si",
+  "test_drive_requested": true
 }
 ```
 
@@ -237,9 +247,9 @@ be completed once MGAgencia shares expected peak/average send rates.
    campaign code we resolve internally, rather than a Salesforce identifier?
 3. How do you identify the target branch/dealer for a Lead? Do you need a
    catalog of values from us first?
-4. What is the catalog of vehicle values (`interest_model`: brand, model,
-   version, year) you intend to send? We will provide the accepted value
-   list once this is confirmed.
+4. ~~What is the catalog of vehicle values (`interest_model`) you intend to
+   send?~~ **Resolved (2026-09-03):** `interest_model` was implemented as
+   free text (max 80 characters), no catalog — see §3.
 5. Do you need to query a Lead's status after creation, or is the synchronous
    creation response sufficient? (Determines whether a GET endpoint is built
    in a future phase.)
