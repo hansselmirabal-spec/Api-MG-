@@ -92,8 +92,10 @@ Each step is a separate go/no-go — do not batch approvals.
    - `Status`: new value `Formulario MGAgencia` (mirror how `Formulario Meta`
      is configured — same record-type visibility, no default).
    - `LeadSource`: new value `MGAgencia`.
-2. **Create the validation rule** `ValidarTareaEstadoContactado` on Lead in
-   `mi-org` (it does not exist there yet, §0/§1.2) — same formula as
+2. ✅ **DONE (2026-09-07)** — Deploy ID `0AfTS000001wsyj0AA`, verified
+   active via Tooling API. **Create the validation rule**
+   `ValidarTareaEstadoContactado` on Lead in `mi-org` (it does not exist
+   there yet, §0/§1.2) — same formula as
    `condor-qas`, with the `Formulario MGAgencia` exemption already included
    from the start:
    ```
@@ -109,12 +111,38 @@ Each step is a separate go/no-go — do not batch approvals.
    ```
    Error message: `Para pasar de estado se debe registrar alguna actividad.`
    Error display field: `EconomicActivity__c`.
+
+   **Known pre-existing gap (found 2026-09-07 via `sf project deploy
+   validate --test-level RunLocalTests` dry run against `mi-org`, and
+   confirmed by running the same 3 test classes directly against
+   `condor-qas`):** this rule already breaks `BudgetControllerTest`,
+   `BudgetDocumentControllerTest` and `ProductControllerTest` (10/10
+   fail, 100% fail rate) in `condor-qas` today, where it's already
+   active but untracked in `force-app/`. Those Budget/Product classes
+   share `TestFactoryData.createLead`, which builds a Lead in a
+   non-exempt status without `LastActivityDate`/`EconomicActivity__c`
+   set. Not caused by MGAgencia — inherited from the rule as it
+   already exists in the sandbox. Deploying to `mi-org` replicates
+   this exact gap rather than introducing a new one, but it does mean
+   any real Budget/Product flow hitting the same Lead shape would get
+   blocked in production too. **PENDING BUSINESS DECISION** — the
+   Budget/Product module owner needs to confirm whether this reflects
+   real usage or stale test data, and whether the exemption needs to
+   widen. Decision made 2026-09-07: proceed with deploy, tracked here
+   rather than fixed pre-deploy — do not run `BudgetControllerTest`,
+   `BudgetDocumentControllerTest` or `ProductControllerTest` as part of
+   this deploy's test level (use `RunSpecifiedTests` scoped to
+   MGAgencia's own suite) so this known gap doesn't block an unrelated
+   deploy.
+
    Do not confuse with the inactive `Validar_Tarea_Estatus_Contactado`
    (underscored) already in prod — unrelated rule, leave it alone.
-3. **Fix `CodigoVendedorAsignacion` before it ever touches `mi-org`** (§0):
-   rebuild its formula from prod's current role-based admin exemption, adding
-   only the `NOT($Permission.MGAgencia_Integration_Bypass)` clause. Do not
-   deploy the version currently committed as-is.
+3. ✅ **DONE (2026-09-07)** — PR #2. **Fix `CodigoVendedorAsignacion` before
+   it ever touches `mi-org`** (§0): rebuild its formula from prod's current
+   role-based admin exemption, adding only the
+   `NOT($Permission.MGAgencia_Integration_Bypass)` clause. Do not deploy the
+   version currently committed as-is. Not yet deployed to `mi-org` itself —
+   still pending as part of step 4/5's component list.
 4. **Validate-only deploy** (`sf project deploy start --dry-run` / `--tests`)
    of an **explicit component list** — not the whole `force-app` tree (§0):
    - The 16 `force-app/main/default/classes/MGAgencia*` classes.
