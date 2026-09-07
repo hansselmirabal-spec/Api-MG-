@@ -225,10 +225,35 @@ Each step is a separate go/no-go — do not batch approvals.
    (`docs/ADMIN_FOLLOWUPS.md` #3): profile "Minimum Access - API Only
    Integrations", permission set `MGAgencia_Integration`, permission set
    license "Salesforce API Integration".
-7. **Create the Connected App** in `mi-org` per `docs/AUTH_SETUP.md` §2–§4,
-   applying the 4 gotchas logged there from the sandbox provisioning, and
-   pointing `Run As` at the production integration user (§0 — never the
-   sandbox user baked into the committed connected-app file).
+7. ✅ **DONE (2026-09-07)** — `mi-org` no longer exposes the classic "New
+   Connected App" button in App Manager; Salesforce has moved new-app
+   creation to **"Aplicación cliente externa" (External Client App
+   Manager)**. Created there instead (`ManageExternalClientApplication`):
+   - Basic info: name `MGAgencia API`, API name `MGAgencia_API`, contact
+     email `hanssel.mirabal@condor.com.py`.
+   - API/OAuth: enabled, callback URL
+     `https://login.salesforce.com/services/oauth2/callback`, scope
+     "Manage user data via APIs (api)", **Activar flujo de credenciales
+     de cliente** checked at creation time.
+   - **Gotcha**: checking that box at creation time is not enough — after
+     creating the app, its **Políticas → Modificar** tab has its *own*,
+     separate "Activar flujo de credenciales de cliente" checkbox
+     (defaults unchecked even though creation had it checked). Only
+     checking it there reveals the **"Ejecutar como" (Run As)** field.
+     Set to `mgagencia.integration@condor.com.py`.
+   - IP Relaxation: set to **"Rebajar restricciones de IP"** (relax), the
+     documented pragmatic fallback (`docs/AUTH_SETUP.md` §4) — MGAgencia
+     hasn't provided egress IPs yet. Switch to "Activar restricciones de
+     IP" + register their IPs once available.
+   - Consumer Key/Secret **not yet retrieved** — deferred to step 8
+     (credential handover), not pulled during this session.
+
+   Original plan (superseded by the above — kept for the gotcha
+   reference): **Create the Connected App** in `mi-org` per
+   `docs/AUTH_SETUP.md` §2–§4, applying the 4 gotchas logged there from
+   the sandbox provisioning, and pointing `Run As` at the production
+   integration user (§0 — never the sandbox user baked into the
+   committed connected-app file).
 8. **Hand over credentials** to MGAgencia per `docs/AUTH_SETUP.md` §5 —
    approved secret channel only, never through this repo or chat.
 9. **Post-deploy verification**:
