@@ -4,10 +4,10 @@
     <active>true</active>
     <errorConditionFormula>AND(
  ISNEW(),
-				NOT(ISPICKVAL(Status, &apos;Nuevo&apos;)), 
-				ISBLANK(VendorCode2__c),
-				$Profile.Name != &apos;Pre-calificación&apos;, 
-$Profile.Name != &apos;Administrador del sistema&apos;,
+NOT(ISPICKVAL(Status, &apos;Nuevo&apos;)),
+ISBLANK(VendorCode2__c),
+$Profile.Name != &apos;Pre-calificación&apos;,
+$UserRole.Name != &apos;Administrador del sistema&apos;,
 NOT($Permission.MGAgencia_Integration_Bypass)
 )</errorConditionFormula>
     <errorDisplayField>VendorCode2__c</errorDisplayField>
