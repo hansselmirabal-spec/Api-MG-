@@ -35,6 +35,27 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
 - Decision: API-created Leads are owned by a dedicated queue (`MGAgencia Leads`). A distribution flow (Meta pattern) routes them by branch / product family. The `CodigoVendedorAsignacion` validation rule is bypassed with a custom permission granted only to the integration user. MGAgencia never sends seller codes.
 - Alternatives: MGAgencia sends a seller code resolved via `VendorCode__c` External ID (couples MGAgencia to seller roster); integration user owns `ProductSeller__c` rows so the trigger auto-assigns (all leads land on one seller).
 - Impact: requires queue, custom permission, VR edit, distribution flow, and integration-user permission set.
+- **Attempted and reverted (2026-09-07)**: tried retargeting the
+  `MGAgencia_Leads` assignment-rule entry to route API-created Leads to the
+  existing **`Reglas_Meta`** queue instead of the dedicated
+  `MGAgencia_Leads` queue — the idea being to work MGAgencia Leads through
+  the same live pipeline/staff already covering `Reglas Meta`, and to reuse
+  its existing `Asignacion_Lead_a_Vendedor` distribution flow (fires on
+  `OwnerId = Reglas Meta`, reads `Sucursal_Seleccionada_Meta__c`) instead of
+  leaving MGAgencia Leads undistributed in their own queue.
+  **Blocked by a real bug, not just a test-isolation issue**: deployed and
+  verified with a real (non-test) Apex call in `condor-qas` —
+  `Asignacion_Lead_a_Vendedor`'s "Asignación Lead a Vendedor según
+  Calendario" sub-flow throws `INVALID_CROSS_REFERENCE_KEY` /
+  `CANNOT_EXECUTE_FLOW_TRIGGER` when it processes an MGAgencia-created Lead,
+  failing the insert outright (500, no Lead created). The flow was built
+  assuming Meta-ad Lead data shape; something it references (vendor/cartera
+  lookup, most likely) doesn't resolve for MGAgencia Leads. **Reverted in
+  both `condor-qas` and the repo** — the assignment rule still routes
+  `LeadSource = 'MGAgencia'` to `MGAgencia_Leads`, unchanged from the
+  original decision. Not attempted in `mi-org`. See
+  `docs/ADMIN_FOLLOWUPS.md` #5 for the follow-up investigation needed before
+  this can be revisited.
 
 ## 2026-08-29 — New Status and LeadSource values (Decision 2)
 
@@ -52,10 +73,15 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
   `MGAgencia_Leads` assignment rule entry, and the
   `MGAgenciaLeadRestResourceTest` assertion were updated to expect
   `Formulario Meta`. Re-verify UAT in `condor-qas` against this value before
-  it reaches `mi-org`. Open risk not yet checked: any org automation/reports
-  keyed specifically on `Status = 'Formulario Meta'` for the Meta pipeline
-  now also fires for MGAgencia Leads sharing that status — not audited as
-  part of this amendment.
+  it reaches `mi-org`.
+- **Observation (2026-09-07)**: opening the verification Lead
+  (`00QTS00000hJImr2AG`) in the `mi-org` UI surfaced Salesforce's native
+  duplicate-management banner ("Parece ser que existen duplicados para este
+  Prospecto"), offering a **Cambiar propietario** action pre-filled with
+  **`Reglas Meta`** as the suggested owner — a side effect of this Lead
+  sharing `Status = 'Formulario Meta'` with the Meta pipeline. This turned
+  out to anticipate Decision 1's amendment below (queue target changed to
+  `Reglas_Meta`), rather than being a bug to fix.
 
 ## 2026-08-31 — Fixed record type, family and brand (Decision 3)
 
