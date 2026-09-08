@@ -49,16 +49,23 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
   Calendario" sub-flow throws `INVALID_CROSS_REFERENCE_KEY` /
   `CANNOT_EXECUTE_FLOW_TRIGGER` when it processes an MGAgencia-created Lead,
   failing the insert outright (500, no Lead created). Root cause narrowed
-  down: the flow's `Calendario_Asignaciones` lookup requires an active
-  branch-level shift (`Calendario_de_Asignaciones__c.Sucursal__c` matching
-  the Lead's `Sucursal_Seleccionada_Meta__c`, bracketed by
-  `Fecha_Inicio_Guardia__c`/`Fecha_Fin_Guardia__c`); at test time the only
-  active shifts in `condor-qas` were scoped to `Sucursal__c =
-  "pre-calificacion"`, none to a real branch, so the lookup returned empty
-  and a downstream owner assignment (`Vendedor_Producto` /
-  `ProductSeller__c`) ended up invalid. Not MGAgencia-specific — likely
-  hits any Lead assigned to a real branch outside an active branch-shift
-  window. **Reverted in both `condor-qas` and the repo** — the assignment
+  down, then refined 2026-09-08: the flow's `Calendario_Asignaciones`
+  lookup requires `Calendario_de_Asignaciones__c.Sucursal__c` to
+  exact-text-match the Lead's `Sucursal_Seleccionada_Meta__c`. Re-tested
+  at a time with 25 genuinely active shifts across real branches — same
+  crash, every time. Root cause is a **casing/format mismatch, not a
+  coverage gap**: the calendar stores `Sucursal__c` as
+  `lowercase_with_underscores` (`asunción`, `ciudad_del_este`), while
+  `Sucursal_Seleccionada_Meta__c` is title case with spaces (`Asunción`,
+  `Ciudad del Este`) — these can never match. Independently confirmed a
+  **second, unrelated blocker**: manually reassigning a Lead's owner to
+  `Reglas Meta` via the UI also fails, via a different flow ("Crear Tarea
+  si No Contactado"), because the `Reglas_Meta` queue's `queueSobject`
+  list only declares `Lead` — `Task` isn't a supported object there
+  (unlike `MGAgencia_Leads`, which has it, per `docs/TEST_PLAN.md` §3
+  point 3). Neither bug is MGAgencia-specific — both likely affect real
+  Meta Leads too, at any time of day. **Reverted in both `condor-qas` and
+  the repo** — the assignment
   rule still routes `LeadSource = 'MGAgencia'` to `MGAgencia_Leads`,
   unchanged from the original decision. Not attempted in `mi-org`. See
   `docs/ADMIN_FOLLOWUPS.md` #5 for the full root-cause detail and the
