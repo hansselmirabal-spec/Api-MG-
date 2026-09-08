@@ -70,6 +70,25 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
   unchanged from the original decision. Not attempted in `mi-org`. See
   `docs/ADMIN_FOLLOWUPS.md` #5 for the full root-cause detail and the
   follow-up investigation needed before this can be revisited.
+- **Second attempt and revert (2026-09-08)**: tried setting
+  `Estatus__c = 'Nuevo'` instead of `'No contactado'` at insert
+  (`MGAgenciaLeadService.buildLead`), targeting `Reglas_Meta` again.
+  Motivation: a manual, non-assignment-rule-engine `Database.insert` with
+  those exact field values completed without error, ending owned by a
+  third queue (`MQL`) that some other org mechanism reassigns to whenever
+  `Estatus__c = 'Nuevo'`. **That result was misleading.** Deployed for
+  real via `MGAgenciaLeadService.process()` (which uses
+  `Database.DMLOptions.assignmentRuleHeader.useDefaultRule = true`, the
+  actual production insert path) and re-tested in `condor-qas`: same
+  `INVALID_CROSS_REFERENCE_KEY` crash as the first attempt, every time.
+  The manual test's different outcome came from *not* invoking the
+  assignment-rule engine (OwnerId was set directly, bypassing rule
+  evaluation) — a meaningfully different code path from what production
+  actually does. Lesson: verify fixes through the real insert path
+  (`Database.DMLOptions.assignmentRuleHeader`), not a manual
+  `Database.insert` with OwnerId set directly — they can behave
+  differently. Reverted again in both `condor-qas` and the repo; no
+  change reached `mi-org`.
 
 ## 2026-08-29 — New Status and LeadSource values (Decision 2)
 
