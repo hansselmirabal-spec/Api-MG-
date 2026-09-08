@@ -114,6 +114,25 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
   `Reglas_Meta` that works. Reverted a third time in both `condor-qas`
   and the repo (CMDT and `MGAgenciaLeadService.insertLead` both back to
   original); no change reached `mi-org`.
+- **Fourth attempt, also reverted (2026-09-08)**: tried the one
+  combination not yet tested — `Estatus__c = 'Nuevo'` **together with**
+  the direct-`OwnerId` mechanism (attempt 3's `Queue_DeveloperName__c`
+  approach), both at once, through the real `MGAgenciaLeadService.process()`
+  path. Motivation: attempt 1's original manual tests that succeeded with
+  `Estatus__c = 'Nuevo'` never went through `MGAgenciaLeadService` at
+  all — they were standalone scripts building a minimal Lead directly.
+  Result: **same `INVALID_CROSS_REFERENCE_KEY` crash, every time**, even
+  with this combination. Some further difference between a full
+  `buildLead()`-constructed Lead (all the CMDT-driven fields, phone
+  normalization, duplicate flags, etc.) going through
+  `MGAgenciaLeadService.process()` and the minimal standalone test
+  Leads from the first attempt still isn't identified — not investigated
+  further. **Four attempts, four independent reverts, four different
+  angles, all blocked.** Recommendation: stop iterating on workarounds
+  from MGAgencia's side — the org's Lead-routing automation needs a real
+  fix by whoever owns it (`docs/ADMIN_FOLLOWUPS.md` #5). `MGAgencia_Leads`
+  remains the only queue that reliably works today. `mi-org` was never
+  touched across any of the four attempts.
 
 ## 2026-08-29 — New Status and LeadSource values (Decision 2)
 
