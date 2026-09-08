@@ -48,14 +48,21 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
   `Asignacion_Lead_a_Vendedor`'s "Asignación Lead a Vendedor según
   Calendario" sub-flow throws `INVALID_CROSS_REFERENCE_KEY` /
   `CANNOT_EXECUTE_FLOW_TRIGGER` when it processes an MGAgencia-created Lead,
-  failing the insert outright (500, no Lead created). The flow was built
-  assuming Meta-ad Lead data shape; something it references (vendor/cartera
-  lookup, most likely) doesn't resolve for MGAgencia Leads. **Reverted in
-  both `condor-qas` and the repo** — the assignment rule still routes
-  `LeadSource = 'MGAgencia'` to `MGAgencia_Leads`, unchanged from the
-  original decision. Not attempted in `mi-org`. See
-  `docs/ADMIN_FOLLOWUPS.md` #5 for the follow-up investigation needed before
-  this can be revisited.
+  failing the insert outright (500, no Lead created). Root cause narrowed
+  down: the flow's `Calendario_Asignaciones` lookup requires an active
+  branch-level shift (`Calendario_de_Asignaciones__c.Sucursal__c` matching
+  the Lead's `Sucursal_Seleccionada_Meta__c`, bracketed by
+  `Fecha_Inicio_Guardia__c`/`Fecha_Fin_Guardia__c`); at test time the only
+  active shifts in `condor-qas` were scoped to `Sucursal__c =
+  "pre-calificacion"`, none to a real branch, so the lookup returned empty
+  and a downstream owner assignment (`Vendedor_Producto` /
+  `ProductSeller__c`) ended up invalid. Not MGAgencia-specific — likely
+  hits any Lead assigned to a real branch outside an active branch-shift
+  window. **Reverted in both `condor-qas` and the repo** — the assignment
+  rule still routes `LeadSource = 'MGAgencia'` to `MGAgencia_Leads`,
+  unchanged from the original decision. Not attempted in `mi-org`. See
+  `docs/ADMIN_FOLLOWUPS.md` #5 for the full root-cause detail and the
+  follow-up investigation needed before this can be revisited.
 
 ## 2026-08-29 — New Status and LeadSource values (Decision 2)
 

@@ -75,11 +75,30 @@ required for production go-live, and remains open at low priority.
   MGAgencia-created Lead — the insert fails outright (500). **Reverted**
   in `condor-qas` and in the repo; MGAgencia Leads still route to
   `MGAgencia_Leads` as originally designed. Never attempted in `mi-org`.
+- **Root cause narrowed down (2026-09-07)**: the flow's "Calendario
+  Asignaciones" step (`Calendario_de_Asignaciones__c` lookup) filters on
+  `Sucursal__c = $Record.Sucursal_Seleccionada_Meta__c` (exact text match
+  against the Lead's branch label) restricted to shifts currently active
+  (`Fecha_Inicio_Guardia__c`/`Fecha_Fin_Guardia__c` bracket `now()`).
+  Checked live in `condor-qas`: the only 2 active shifts at the time of
+  testing had `Sucursal__c = "pre-calificacion"` — none for a real branch
+  (`Asunción`, `Ciudad del Este`, etc.). With no matching calendar row,
+  the lookup comes back empty (`assignNullValuesIfNoRecordsFound = false`,
+  so the flow variable stays unset rather than explicitly null), which
+  cascades into the next lookup (`Vendedor_Producto`, filtered on
+  `ProductSeller__c.OwnerId = Calendario_Asignaciones.Vendedor__c`) also
+  coming back empty, and ultimately an invalid Owner reference on the
+  Lead update. **This isn't MGAgencia-specific** — any Lead assigned to a
+  real branch outside an active branch-level shift window would hit the
+  same wall; the flow's "Feriado"/"Fuera de Horario" branches apparently
+  don't cover "no active shift configured for this Sucursal at all."
 - **Action**: a Salesforce admin/flow owner needs to open
-  `Asignacion_Lead_a_Vendedor` and find what it references that doesn't
-  resolve for an MGAgencia Lead (likely a vendor/cartera/account lookup
-  that assumes a real Meta-ad Lead shape) before this routing change can
-  be retried. Out of scope for MGAgencia's own Apex layer — this is a
-  bug in shared org automation.
+  `Asignacion_Lead_a_Vendedor` in Flow Builder, confirm branch-level shift
+  coverage (calendar rows with `Sucursal__c` = a real branch name,
+  matching `Sucursal_Seleccionada_Meta__c`'s exact label casing) exists at
+  all times shifts should be covered, and add a safe fallback path (e.g.
+  leave the Lead owned by the queue) when `Calendario_Asignaciones` finds
+  nothing — before this routing change can be retried. Out of scope for
+  MGAgencia's own Apex layer — this is a bug/gap in shared org automation.
 - **Priority**: medium — only matters if/when Decision 1's queue routing
   is revisited; the current `MGAgencia_Leads` queue works correctly today.
