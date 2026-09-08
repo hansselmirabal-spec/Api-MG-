@@ -133,6 +133,40 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
   fix by whoever owns it (`docs/ADMIN_FOLLOWUPS.md` #5). `MGAgencia_Leads`
   remains the only queue that reliably works today. `mi-org` was never
   touched across any of the four attempts.
+- **Fifth attempt: SUCCESS (2026-09-08)**. The missing piece from attempts
+  1-4: `Sucursal_Seleccionada_Meta__c`'s label casing. Checked real Meta
+  Leads already in `mi-org` (`LeadSource = 'Redes Sociales Empresa'`) —
+  they write `asunción` / `ciudad_del_este` (lowercase_with_underscores),
+  never title case, and none of them sit owned by queue `Reglas Meta` —
+  they're already reassigned to individual reps, meaning
+  `Asignacion_Lead_a_Vendedor` succeeds for them every time. Our title-case
+  labels (`MGAgenciaBranchResolver`, originally a styling choice, not an
+  MGAgencia or org requirement) never matched
+  `Calendario_de_Asignaciones__c.Sucursal__c`'s format — that was the true
+  root cause of every `INVALID_CROSS_REFERENCE_KEY` crash across all four
+  prior attempts, not the assignment mechanism or `Estatus__c` alone.
+  Changed `MGAgenciaBranchResolver`'s catalog to the same
+  lowercase_with_underscores format (`asunción`, `ciudad_del_este`,
+  `coronel_oviedo`, `encarnación`) — purely an internal label change, the
+  external `branch_code` contract (`ASUNCION`, etc.) is unchanged.
+  Combined with attempt 3's direct-`OwnerId` mechanism
+  (`Queue_DeveloperName__c` → `Reglas_Meta`) and attempt 2's
+  `Estatus__c = 'Nuevo'`, verified via the real `MGAgenciaLeadService.process()`
+  path in `mi-org` (where the calendar has real data — `condor-qas`
+  doesn't and can't validate this): **201, Owner = queue `MQL`, no error**.
+  Deployed for real (dry-run validated first, 27/27, then real deploy,
+  27/27) to `mi-org`. Final state: `MGAgencia_Integration_Setting__mdt`
+  Default record's `Queue_DeveloperName__c = 'Reglas_Meta'`;
+  `MGAgenciaLeadService.insertLead` resolves that queue and sets
+  `Lead.OwnerId` directly (no assignment-rule engine); `Estatus__c =
+  'Nuevo'`. The org's own automation then reassigns the Lead to queue
+  `MQL` — confirmed acceptable by the Salesforce admin. The
+  `Asignacion_Lead_a_Vendedor` casing bug (`docs/ADMIN_FOLLOWUPS.md` #5)
+  is now moot for MGAgencia specifically, since it's worked around on our
+  side; it may still be worth flagging upstream since it's not
+  MGAgencia-specific. The `Reglas_Meta` Task-queue gap (#5) is also moot
+  for MGAgencia now, since `Estatus__c = 'Nuevo'` never triggers "Crear
+  Tarea si No Contactado" in the first place.
 
 ## 2026-08-29 — New Status and LeadSource values (Decision 2)
 

@@ -8,9 +8,10 @@
  *              SHARING MODEL (DEF-001): the duplicate scan — and ONLY the scan — runs in
  *              SYSTEM_MODE through a private without-sharing executor. Duplicate detection
  *              must compare against ALL existing Leads org-wide; the least-privilege
- *              integration user is not a member of the MGAgencia_Leads queue that owns
- *              API-created Leads, so a sharing-enforced query returns nothing and every
- *              duplicate is silently missed (defect DEF-001, found in provider UAT).
+ *              integration user is not a member of the queue that owns API-created Leads
+ *              (MQL, as of Decision 1's 2026-09-08 amendment), so a sharing-enforced query
+ *              returns nothing and every duplicate is silently missed (defect DEF-001,
+ *              found in provider UAT).
  *              Nothing from other records is exposed to the API consumer beyond the
  *              boolean duplicate flag and a generic reason code. Everything else in the
  *              integration (validation, DML, logging) stays in user mode.

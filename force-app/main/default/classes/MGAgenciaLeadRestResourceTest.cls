@@ -59,7 +59,7 @@ private class MGAgenciaLeadRestResourceTest {
         System.assertEquals('MG', created.Brand__c, 'Configured brand');
         System.assertEquals('MGAgencia', created.LeadSource, 'Configured lead source');
         System.assertEquals('Formulario Meta', created.Status, 'Configured initial status');
-        System.assertEquals('Asunción', created.Sucursal_Seleccionada_Meta__c,
+        System.assertEquals('asunción', created.Sucursal_Seleccionada_Meta__c,
             'branch_code resolved to Sucursal_Seleccionada_Meta__c label (Decision 7 amendment)');
         System.assertEquals(null, created.Nearest_Branch__c,
             'Nearest_Branch__c is no longer set by this integration');
@@ -160,7 +160,7 @@ private class MGAgenciaLeadRestResourceTest {
         System.assertEquals(201, RestContext.response.statusCode, 'Created');
         Lead created = [SELECT Sucursal_Seleccionada_Meta__c, Nearest_Branch__c
                          FROM Lead WHERE External_Lead_Id__c = 'neb-rest-branch'];
-        System.assertEquals('Ciudad del Este', created.Sucursal_Seleccionada_Meta__c,
+        System.assertEquals('ciudad_del_este', created.Sucursal_Seleccionada_Meta__c,
             'Catalog code mapped to the Sucursal_Seleccionada_Meta__c label (Decision 7 amendment)');
         System.assertEquals(null, created.Nearest_Branch__c, 'Nearest_Branch__c is not set anymore');
     }
