@@ -64,9 +64,26 @@ required for production go-live, and remains open at low priority.
   deploy the dedicated Connected App from `docs/AUTH_SETUP.md`.
 - **Priority**: low — sandbox-only test enablement, not a product requirement.
 
-## 5. `Asignacion_Lead_a_Vendedor` flow breaks on MGAgencia Lead data (found + reverted, 2026-09-07)
+## 5. `Asignacion_Lead_a_Vendedor` / `Reglas_Meta` — worked around for MGAgencia (found 2026-09-07, resolved on our side 2026-09-08)
 
-- **What**: attempted routing MGAgencia Leads to the `Reglas_Meta` queue
+- **Status: RESOLVED for MGAgencia (2026-09-08)** — root cause was the
+  `Sucursal_Seleccionada_Meta__c` casing mismatch below; fixed by
+  changing `MGAgenciaBranchResolver` to write the same
+  lowercase_with_underscores format real Meta Leads already use.
+  Combined with routing through `Reglas_Meta` (`OwnerId` set directly,
+  not via the assignment-rule engine) and `Estatus__c = 'Nuevo'`
+  (avoids the Task-queue gap below entirely, since it never triggers
+  "Crear Tarea si No Contactado"), MGAgencia Leads now land in queue
+  `MQL` without error — confirmed via a real call through
+  `MGAgenciaLeadService.process()` in `mi-org`. See `docs/DECISIONS.md`
+  Decision 1, fifth attempt. **The two org-level bugs documented below
+  are no longer blockers for MGAgencia**, but may still be worth fixing
+  upstream if they affect real Meta Leads outside a title-case-writing
+  integration (unclear — real Meta Leads observed already write the
+  matching lowercase format, so they may not hit the casing bug; the
+  Task-queue gap on `Reglas_Meta` would still affect anyone who manually
+  reassigns a Lead there with `Estatus__c = 'No contactado'`).
+- **What (original investigation, kept for reference)**: attempted routing MGAgencia Leads to the `Reglas_Meta` queue
   (to reuse the existing `Asignacion_Lead_a_Vendedor` distribution flow
   instead of leaving them in their own queue — see `docs/DECISIONS.md`
   Decision 1). Verified with a real (non-test) call in `condor-qas`: the
@@ -137,7 +154,7 @@ required for production go-live, and remains open at low priority.
   `Reglas Meta` today, from any source, hits the Task-queue error; any
   Lead with a title-case Sucursal value hits the casing mismatch,
   regardless of source).
-- **Priority**: high — not just an MGAgencia blocker. Two independent,
-  confirmed defects in shared org automation/config, both reproducible
-  today against real (non-MGAgencia) data and apparently unrelated to
-  time of day, should be escalated as standalone production issues.
+- **Priority**: medium (downgraded 2026-09-08, was high) — no longer
+  blocks MGAgencia (worked around, see Status above). Still two real,
+  reproducible defects in shared org automation/config; worth fixing
+  upstream at some point, but not urgent for this project anymore.

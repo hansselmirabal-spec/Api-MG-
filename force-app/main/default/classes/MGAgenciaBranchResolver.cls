@@ -1,22 +1,27 @@
 /**
  * @description Resolves the MGAgencia branch_code catalog to a text label written to
  *              Lead.Sucursal_Seleccionada_Meta__c (docs/DECISIONS.md, Decision 7, amended
- *              2026-09-03). The external contract/catalog is unchanged: 4 Cóndor branches,
- *              same codes. Only the internal target field and label casing changed — labels
- *              now match the MGAgencia form methodology (title case) rather than the
- *              Nearest_Branch__c picklist's all-caps values. Third-party dealers are out of
- *              scope for v1.
+ *              2026-09-08). The external contract/catalog is unchanged: 4 Cóndor branches,
+ *              same codes. Third-party dealers are out of scope for v1.
  *
- *              Verified safe: flow Asignacion_Lead_a_Vendedor reads Sucursal_Seleccionada_Meta__c
- *              but only fires when Lead OwnerId = queue "Reglas Meta"; MGAgencia Leads are
- *              always owned by queue "MGAgencia Leads", so this write is inert beyond storage.
+ *              Label casing (2026-09-08): lowercase_with_underscores, matching the exact
+ *              format real Meta-sourced Leads already write to this field and, critically,
+ *              the format `Calendario_de_Asignaciones__c.Sucursal__c` uses. Confirmed by
+ *              inspecting real Meta Leads in mi-org: they carry Sucursal_Seleccionada_Meta__c
+ *              values like "asunción" / "ciudad_del_este", never title case — the earlier
+ *              title-case choice (see git history) was our own styling decision, not
+ *              something MGAgencia or the org required, and it caused
+ *              Asignacion_Lead_a_Vendedor's "Asignación Lead a Vendedor según Calendario"
+ *              sub-flow to never find an active shift (exact-text-match lookup), crashing
+ *              any Lead that ever reached queue "Reglas Meta" (docs/ADMIN_FOLLOWUPS.md #5).
+ *              Real Meta Leads never hit this because their casing already matches.
  */
 public with sharing class MGAgenciaBranchResolver {
     private static final Map<String, String> BRANCH_BY_CODE = new Map<String, String>{
-        'ASUNCION' => 'Asunción',
-        'CIUDAD_DEL_ESTE' => 'Ciudad del Este',
-        'CORONEL_OVIEDO' => 'Coronel Oviedo',
-        'ENCARNACION' => 'Encarnación'
+        'ASUNCION' => 'asunción',
+        'CIUDAD_DEL_ESTE' => 'ciudad_del_este',
+        'CORONEL_OVIEDO' => 'coronel_oviedo',
+        'ENCARNACION' => 'encarnación'
     };
 
     /**

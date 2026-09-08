@@ -50,7 +50,7 @@ public with sharing class MGAgenciaLeadService {
                     normalizedPhone, request.email, request.external_lead_id);
                 Lead lead = buildLead(request, normalizedPhone, config, duplicate);
                 applyOptionalBooleanFields(lead, request);
-                insertLead(lead);
+                insertLead(lead, config.Queue_DeveloperName__c);
                 entry.status = 'CREATED';
                 entry.leadId = lead.Id;
                 entry.duplicated = duplicate.isDuplicate;
@@ -131,11 +131,14 @@ public with sharing class MGAgenciaLeadService {
             Plazo_de_Compra__c = String.isBlank(request.purchase_timeline) ? null : request.purchase_timeline.trim(),
             Entrega_su_Auto__c = String.isBlank(request.trade_in) ? null : request.trade_in.trim(),
             Status = config.Initial_Status__c,
-            // Org VR ValidarTareaEstadoContactado exempts 'Formulario Meta'/'Prospecto' but not
-            // the new initial status; it passes when Estatus__c = 'No contactado', which is the
-            // factual state of a freshly received advertising lead. Follow-up: add the status
-            // exemption to the VR itself (Salesforce admin change).
-            Estatus__c = 'No contactado',
+            // Decision 1 amendment (2026-09-08, confirmed by Salesforce admin): Estatus__c
+            // = 'Nuevo' instead of 'No contactado'. 'No contactado' triggers the org flow
+            // "Crear Tarea si No Contactado" on Owner change, which fails outright for any
+            // queue lacking Task in its supported objects (Reglas_Meta, MQL — see
+            // docs/ADMIN_FOLLOWUPS.md #5). 'Nuevo' avoids that flow's trigger condition; a
+            // separate org mechanism reassigns Estatus__c = 'Nuevo' Leads to the MQL queue
+            // regardless of the assignment rule's target queue.
+            Estatus__c = 'Nuevo',
             LeadSource = config.Lead_Source__c,
             Family__c = config.Family__c,
             Brand__c = config.Brand__c,
@@ -159,17 +162,29 @@ public with sharing class MGAgenciaLeadService {
     }
 
     /**
-     * @description Inserts the Lead applying the org's active assignment rule (routes
-     *              LeadSource = MGAgencia to the MGAgencia_Leads queue — Decision 1, amended).
-     *              User-mode DML: CRUD/FLS enforced for the running integration user.
+     * @description Inserts the Lead with OwnerId resolved directly from
+     *              MGAgencia_Integration_Setting__mdt.Queue_DeveloperName__c (Decision 1,
+     *              amended 2026-09-08) — NOT via the org's shared assignment-rule engine.
+     *              Configured to target Reglas_Meta; combined with Estatus__c = 'Nuevo'
+     *              (see buildLead), the org's own automation reassigns the Lead to queue
+     *              MQL. Verified via real (non-test) calls in mi-org. User-mode DML:
+     *              CRUD/FLS enforced for the running integration user.
      * @param lead unsaved Lead, populated by buildLead
+     * @param queueDeveloperName target queue's DeveloperName, from CMDT config
+     * @throws MGAgenciaConfigurationException when the configured queue does not exist
      */
-    private static void insertLead(Lead lead) {
+    private static void insertLead(Lead lead, String queueDeveloperName) {
         if (simulateDmlFailure) {
             throw new MGAgenciaIntegrationException('Simulated DML failure for tests.');
         }
+        List<Group> queues = [SELECT Id FROM Group
+                               WHERE DeveloperName = :queueDeveloperName AND Type = 'Queue' LIMIT 1];
+        if (queues.isEmpty()) {
+            throw new MGAgenciaConfigurationException(
+                'Configured queue not found: ' + queueDeveloperName);
+        }
+        lead.OwnerId = queues[0].Id;
         Database.DMLOptions options = new Database.DMLOptions();
-        options.assignmentRuleHeader.useDefaultRule = true;
         options.optAllOrNone = true;
         lead.setOptions(options);
         Database.insert(lead, AccessLevel.USER_MODE);

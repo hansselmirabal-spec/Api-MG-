@@ -178,10 +178,12 @@ private class MGAgenciaLeadServiceTest {
     /**
      * DEF-001 regression: under the real least-privilege integration profile
      * ("Minimum Access - API Only Integrations" + MGAgencia_Integration permission set),
-     * the assignment rule routes created Leads to the MGAgencia_Leads queue, which the
-     * integration user is NOT a member of. A sharing-enforced duplicate scan therefore
-     * sees no prior Leads and silently reports duplicated=false. The scan must run in
-     * system mode so duplicates are detected org-wide regardless of record visibility.
+     * created Leads end up owned by the MQL queue (Decision 1, amended 2026-09-08 —
+     * insertLead targets Reglas_Meta directly, then the org's own Estatus__c = 'Nuevo'
+     * handling reassigns to MQL), which the integration user is NOT a member of. A
+     * sharing-enforced duplicate scan therefore sees no prior Leads and silently reports
+     * duplicated=false. The scan must run in system mode so duplicates are detected
+     * org-wide regardless of record visibility — independent of which queue owns the Lead.
      */
     @IsTest
     static void duplicateIsDetectedUnderLeastPrivilegeIntegrationUser() {

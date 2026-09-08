@@ -24,7 +24,7 @@
     </values>
     <values>
         <field>Queue_DeveloperName__c</field>
-        <value xsi:type="xsd:string">MGAgencia_Leads</value>
+        <value xsi:type="xsd:string">Reglas_Meta</value>
     </values>
     <values>
         <field>Active__c</field>
