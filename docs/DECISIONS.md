@@ -81,14 +81,39 @@ Source: read-only inspection of sandbox `condor-qas`. Details in `docs/FIELD_MAP
   `Database.DMLOptions.assignmentRuleHeader.useDefaultRule = true`, the
   actual production insert path) and re-tested in `condor-qas`: same
   `INVALID_CROSS_REFERENCE_KEY` crash as the first attempt, every time.
-  The manual test's different outcome came from *not* invoking the
-  assignment-rule engine (OwnerId was set directly, bypassing rule
-  evaluation) — a meaningfully different code path from what production
-  actually does. Lesson: verify fixes through the real insert path
-  (`Database.DMLOptions.assignmentRuleHeader`), not a manual
-  `Database.insert` with OwnerId set directly — they can behave
-  differently. Reverted again in both `condor-qas` and the repo; no
-  change reached `mi-org`.
+  At the time, the manual test's different outcome was attributed to
+  *not* invoking the assignment-rule engine (OwnerId set directly,
+  bypassing rule evaluation). **That attribution was wrong — corrected
+  same day by a third attempt.**
+- **Third attempt, correct root cause identified, still reverted
+  (2026-09-08)**: re-tested the "set OwnerId directly, skip the
+  assignment-rule engine" idea properly — wired
+  `MGAgencia_Integration_Setting__mdt.Queue_DeveloperName__c` (present in
+  the CMDT schema but never actually used until this test) to resolve the
+  target queue and set `Lead.OwnerId` directly in
+  `MGAgenciaLeadService.insertLead`, dropping
+  `Database.DMLOptions.assignmentRuleHeader` entirely. With the CMDT
+  still pointed at `MGAgencia_Leads`, this worked identically to today's
+  behavior (confirmed via `MGAgenciaLeadService.process()`, real call,
+  201, correct owner) — the mechanism itself is sound. Then pointed the
+  CMDT at `Reglas_Meta` and re-tested the same way, **keeping
+  `Estatus__c = 'No contactado'` unchanged this time** (the second
+  attempt had changed both the owner-assignment mechanism *and*
+  `Estatus__c` at once, conflating two variables). Result: same
+  `INVALID_CROSS_REFERENCE_KEY` crash as always. **This isolates the real
+  variable: it's `Estatus__c`, not the assignment mechanism.** With
+  `Estatus__c = 'No contactado'` (what production actually sends, needed
+  for the contact-reminder task), the calendar flow crash happens
+  regardless of whether OwnerId is set via the assignment-rule engine or
+  directly — the Lead simply stays owned by `Reglas_Meta` long enough
+  either way for `Asignacion_Lead_a_Vendedor` to evaluate and fail. Only
+  `Estatus__c = 'Nuevo'` avoids it (by triggering the unrelated
+  redirect-to-`MQL` mechanism before that flow gets a chance to fire) —
+  and that trades away the contact-reminder task, as already noted above.
+  There is no combination of `Estatus__c = 'No contactado'` +
+  `Reglas_Meta` that works. Reverted a third time in both `condor-qas`
+  and the repo (CMDT and `MGAgenciaLeadService.insertLead` both back to
+  original); no change reached `mi-org`.
 
 ## 2026-08-29 — New Status and LeadSource values (Decision 2)
 
