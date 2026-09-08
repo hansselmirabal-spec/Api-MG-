@@ -88,27 +88,56 @@ required for production go-live, and remains open at low priority.
   cascades into the next lookup (`Vendedor_Producto`, filtered on
   `ProductSeller__c.OwnerId = Calendario_Asignaciones.Vendedor__c`) also
   coming back empty, and ultimately an invalid Owner reference on the
-  Lead update. **Confirmed it's not branch-value-dependent**: re-tested
-  with `Sucursal_Seleccionada_Meta__c` left blank (no `branch_code`) —
-  still 500, same error. So this isn't about MGAgencia's branch labels
-  specifically; it's about there being **no active shift at all** for
-  whatever Sucursal value the Lead carries (including blank) at the
-  moment of insert. **This means any Lead landing in `Reglas Meta` right
-  now (real Meta ads included, not just MGAgencia) would hit the exact
-  same crash outside active shift hours** — this may already be a live,
-  unnoticed production issue for real Meta leads submitted at night, on
-  weekends, or on holidays, independent of this project. Worth escalating
-  to whoever owns Lead routing as a standalone bug, not just a blocker for
-  the MGAgencia routing change.
-- **Action**: a Salesforce admin/flow owner needs to open
-  `Asignacion_Lead_a_Vendedor` in Flow Builder, confirm branch-level shift
-  coverage (calendar rows with `Sucursal__c` = a real branch name,
-  matching `Sucursal_Seleccionada_Meta__c`'s exact label casing) exists at
-  all times shifts should be covered, and add a safe fallback path (e.g.
-  leave the Lead owned by the queue) when `Calendario_Asignaciones` finds
-  nothing — before this routing change can be retried. Out of scope for
-  MGAgencia's own Apex layer — this is a bug/gap in shared org automation.
-- **Priority**: high — not just an MGAgencia blocker. If this reproduces
-  the same way for real Meta-sourced Leads (untested, but nothing found
-  ties the crash to MGAgencia's data specifically), it's a live production
-  defect independent of this project and should be escalated as such.
+  Lead update. **Confirmed it's not a time-of-day/shift-coverage issue —
+  it's a text format mismatch (2026-09-08), likely permanent**: re-tested
+  at a time when 25 shifts were genuinely active, including real branches
+  (`asunción`, `coronel_oviedo`, `ciudad_del_este`, `encarnación`) — same
+  500, same error, every time. The `Calendario_de_Asignaciones__c.Sucursal__c`
+  values are **lowercase with underscores** (`asunción`,
+  `ciudad_del_este`), while `Lead.Sucursal_Seleccionada_Meta__c` (written
+  by `MGAgenciaBranchResolver`, per Decision 7) is **title case with
+  spaces** (`Asunción`, `Ciudad del Este`). The lookup's filter
+  (`Sucursal__c = $Record.Sucursal_Seleccionada_Meta__c`) is an exact
+  text match, so these values can never match, regardless of whether a
+  shift is active. **This means any Lead landing in `Reglas Meta` — real
+  Meta ads included, not just MGAgencia — would hit the exact same crash
+  at any time of day**, not just outside shift hours as first suspected.
+  If real Meta Leads also write `Sucursal_Seleccionada_Meta__c` in title
+  case (as MGAgenciaBranchResolver's doc comment implies — it says it
+  matches "the MGAgencia form methodology," suggesting Meta's own form
+  used the same casing before this field was reused), this is likely a
+  live, permanently-broken automation path for real Meta leads too,
+  independent of this project. Worth escalating urgently to whoever owns
+  Lead routing — not just a blocker for the MGAgencia routing change.
+- **Second, independent confirmed blocker (2026-09-08)**: manually
+  reassigning a Lead's owner to `Reglas Meta` via the UI ("Cambiar
+  propietario") also fails, with a *different* flow — "Crear Tarea si No
+  Contactado" — throwing `INVALID_OPERATION: Queue not associated with
+  this SObject type`. Verified via metadata retrieve: the `Reglas_Meta`
+  queue (`force-app`-untracked, retrieved read-only from `mi-org`) only
+  declares `Lead` in its `queueSobject` list — **`Task` is not a
+  supported object type on that queue**. Any flow that creates a Task
+  owned by the Lead's (new) owner — like "Crear Tarea si No Contactado" —
+  fails outright the moment a Lead's owner becomes `Reglas Meta`. This is
+  the exact same class of gap already fixed for `MGAgencia_Leads` (see
+  `docs/TEST_PLAN.md` §3 point 3 — Task had to be explicitly added to that
+  queue's supported objects during MGAgencia's own onboarding); `Reglas
+  Meta` never got the same treatment.
+- **Action**: two separate fixes needed on `Reglas_Meta` before this
+  queue can safely own any Lead expected to go through standard
+  contact-tracking automation: (1) add `Task` to `Reglas_Meta`'s
+  supported object types (Setup → Queues → Reglas Meta → Objects
+  admitidos), and (2) fix the casing/format mismatch between
+  `Calendario_de_Asignaciones__c.Sucursal__c` (lowercase_with_underscores)
+  and `Lead.Sucursal_Seleccionada_Meta__c` (Title Case With Spaces) — either
+  normalize one side to match the other, or change the flow's filter to a
+  case-insensitive/normalized comparison. A Salesforce admin/flow owner
+  should own both — out of scope for MGAgencia's own Apex layer, and both
+  likely affect real Meta Leads too (manually reassigning any Lead to
+  `Reglas Meta` today, from any source, hits the Task-queue error; any
+  Lead with a title-case Sucursal value hits the casing mismatch,
+  regardless of source).
+- **Priority**: high — not just an MGAgencia blocker. Two independent,
+  confirmed defects in shared org automation/config, both reproducible
+  today against real (non-MGAgencia) data and apparently unrelated to
+  time of day, should be escalated as standalone production issues.
