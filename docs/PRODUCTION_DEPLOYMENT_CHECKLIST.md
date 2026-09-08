@@ -256,20 +256,42 @@ Each step is a separate go/no-go — do not batch approvals.
    committed connected-app file).
 8. **Hand over credentials** to MGAgencia per `docs/AUTH_SETUP.md` §5 —
    approved secret channel only, never through this repo or chat.
-9. **Post-deploy verification**:
-   - Run the full Apex test suite once more against `mi-org`.
-   - Create one verification Lead end-to-end (same method used in
-     `condor-qas` today: anonymous Apex calling `MGAgenciaLeadService.process`,
-     or a real authenticated REST call once the Connected App is live).
-   - Confirm the least-privilege integration user can create a Lead and have
-     its duplicate scan detect a match (mirrors
-     `duplicateIsDetectedUnderLeastPrivilegeIntegrationUser`, DEF-001).
-   - Confirm flow `Asignacion_Lead_a_Vendedor` and queue `Reglas Meta`
-     behave as documented safe in `MGAgenciaBranchResolver` — it must only
-     fire for `OwnerId = Reglas Meta`, never for `MGAgencia_Leads`.
-   - Confirm a Lead created with `LeadSource = Redes Sociales Empresa` and
-     `Family__c = AUTOMÓVILES MG` is no longer caught by the `Reglas_Meta`
-     entry (§0's assignment-rule addition).
+9. ✅ **DONE (2026-09-07)** — **Post-deploy verification**:
+   - ✅ Full Apex suite re-run against `mi-org`: 27/27 PASS.
+   - ✅ One verification Lead created end-to-end via anonymous Apex
+     (`MGAgenciaLeadService.process`, `external_lead_id` prefixed
+     `verif-prod-`) — Lead `00QTS00000hJImr2AG`. Result: 201
+     `LEAD_CREATED`, `Status = Formulario Meta`, `LeadSource = MGAgencia`,
+     `Family__c = AUTOMÓVILES MG`, `Brand__c = MG`, record type `Fisica`,
+     owner = queue `MGAgencia Leads` (not `Reglas Meta`). **Left in
+     `mi-org` for the admin to delete manually** — not cleaned up by this
+     session, per explicit instruction.
+   - ✅ Least-privilege duplicate-scan check covered by the Apex suite
+     re-run itself (`duplicateIsDetectedUnderLeastPrivilegeIntegrationUser`
+     is part of the 27/27 — it builds its own ephemeral least-privilege
+     user inside the test, so it validates the real profile/permission-set
+     combination without touching the named integration user).
+   - ✅ Checked 3 real, pre-existing Leads matching
+     `LeadSource = 'Redes Sociales Empresa' AND Family__c = 'AUTOMÓVILES MG'`
+     — all three are owned by individual reps (Bruno Fernandez, Giannina
+     Baez, Pedro Silke), none by the `Reglas Meta` queue. Confirms the
+     `Family__c` exclusion added to that assignment-rule entry (§0) isn't
+     misfiring in production.
+
+   Original plan (superseded by the above — kept for method reference):
+   Run the full Apex test suite once more against `mi-org`. Create one
+   verification Lead end-to-end (same method used in `condor-qas` today:
+   anonymous Apex calling `MGAgenciaLeadService.process`, or a real
+   authenticated REST call once the Connected App is live). Confirm the
+   least-privilege integration user can create a Lead and have its
+   duplicate scan detect a match (mirrors
+   `duplicateIsDetectedUnderLeastPrivilegeIntegrationUser`, DEF-001).
+   Confirm flow `Asignacion_Lead_a_Vendedor` and queue `Reglas Meta`
+   behave as documented safe in `MGAgenciaBranchResolver` — it must only
+   fire for `OwnerId = Reglas Meta`, never for `MGAgencia_Leads`. Confirm
+   a Lead created with `LeadSource = Redes Sociales Empresa` and
+   `Family__c = AUTOMÓVILES MG` is no longer caught by the `Reglas_Meta`
+   entry (§0's assignment-rule addition).
 10. **Close out** `docs/ADMIN_FOLLOWUPS.md` items #1–#3.
 
 ---
