@@ -63,3 +63,23 @@ required for production go-live, and remains open at low priority.
   Ranges (Setup → Network Access) temporarily and remove it afterward, OR
   deploy the dedicated Connected App from `docs/AUTH_SETUP.md`.
 - **Priority**: low — sandbox-only test enablement, not a product requirement.
+
+## 5. `Asignacion_Lead_a_Vendedor` flow breaks on MGAgencia Lead data (found + reverted, 2026-09-07)
+
+- **What**: attempted routing MGAgencia Leads to the `Reglas_Meta` queue
+  (to reuse the existing `Asignacion_Lead_a_Vendedor` distribution flow
+  instead of leaving them in their own queue — see `docs/DECISIONS.md`
+  Decision 1). Verified with a real (non-test) call in `condor-qas`: the
+  flow's "Asignación Lead a Vendedor según Calendario" sub-flow throws
+  `INVALID_CROSS_REFERENCE_KEY` / `CANNOT_EXECUTE_FLOW_TRIGGER` on an
+  MGAgencia-created Lead — the insert fails outright (500). **Reverted**
+  in `condor-qas` and in the repo; MGAgencia Leads still route to
+  `MGAgencia_Leads` as originally designed. Never attempted in `mi-org`.
+- **Action**: a Salesforce admin/flow owner needs to open
+  `Asignacion_Lead_a_Vendedor` and find what it references that doesn't
+  resolve for an MGAgencia Lead (likely a vendor/cartera/account lookup
+  that assumes a real Meta-ad Lead shape) before this routing change can
+  be retried. Out of scope for MGAgencia's own Apex layer — this is a
+  bug in shared org automation.
+- **Priority**: medium — only matters if/when Decision 1's queue routing
+  is revisited; the current `MGAgencia_Leads` queue works correctly today.

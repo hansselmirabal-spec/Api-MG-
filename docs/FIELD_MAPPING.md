@@ -257,7 +257,7 @@ Applied to every API-created Lead; MGAgencia sends none of these.
 | `Brand__c` | `MG` | Custom Metadata | CONFIRMED — Decision 3 |
 | `Status` | `Formulario Meta` (reused existing value, amended 2026-09-07) | Fixed initial value at insert | CONFIRMED — Decision 2 |
 | `LeadSource` | `MGAgencia` (new picklist value) | Fixed value at insert | CONFIRMED — Decision 2 |
-| Owner / queue | Routed to queue `MGAgencia Leads` | New entry on the org's single active Lead assignment rule (`LeadSource = 'MGAgencia'` → `MGAgencia Leads`), applied via `Database.DMLOptions.assignmentRuleHeader`. No new distribution flow in v1 | CONFIRMED — Decision 1 (amended 2026-08-31) |
+| Owner / queue | Routed to queue `MGAgencia Leads` | New entry on the org's single active Lead assignment rule (`LeadSource = 'MGAgencia'` → `MGAgencia_Leads`), applied via `Database.DMLOptions.assignmentRuleHeader`. No new distribution flow in v1. A 2026-09-07 attempt to reroute to `Reglas_Meta` (to reuse its `Asignacion_Lead_a_Vendedor` distribution flow) was reverted — that flow breaks on MGAgencia Lead data (see `docs/ADMIN_FOLLOWUPS.md` #5) | CONFIRMED — Decision 1 (amended 2026-08-31) |
 | `VendorCode2__c` / `CodigoVendedorAsignacion` VR | Not populated by MGAgencia | VR bypassed via custom permission granted only to the integration user | CONFIRMED — Decision 1 |
 
 ### 10.3 Remaining PENDING BUSINESS DECISION items
