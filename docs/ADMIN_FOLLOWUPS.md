@@ -88,10 +88,18 @@ required for production go-live, and remains open at low priority.
   cascades into the next lookup (`Vendedor_Producto`, filtered on
   `ProductSeller__c.OwnerId = Calendario_Asignaciones.Vendedor__c`) also
   coming back empty, and ultimately an invalid Owner reference on the
-  Lead update. **This isn't MGAgencia-specific** — any Lead assigned to a
-  real branch outside an active branch-level shift window would hit the
-  same wall; the flow's "Feriado"/"Fuera de Horario" branches apparently
-  don't cover "no active shift configured for this Sucursal at all."
+  Lead update. **Confirmed it's not branch-value-dependent**: re-tested
+  with `Sucursal_Seleccionada_Meta__c` left blank (no `branch_code`) —
+  still 500, same error. So this isn't about MGAgencia's branch labels
+  specifically; it's about there being **no active shift at all** for
+  whatever Sucursal value the Lead carries (including blank) at the
+  moment of insert. **This means any Lead landing in `Reglas Meta` right
+  now (real Meta ads included, not just MGAgencia) would hit the exact
+  same crash outside active shift hours** — this may already be a live,
+  unnoticed production issue for real Meta leads submitted at night, on
+  weekends, or on holidays, independent of this project. Worth escalating
+  to whoever owns Lead routing as a standalone bug, not just a blocker for
+  the MGAgencia routing change.
 - **Action**: a Salesforce admin/flow owner needs to open
   `Asignacion_Lead_a_Vendedor` in Flow Builder, confirm branch-level shift
   coverage (calendar rows with `Sucursal__c` = a real branch name,
@@ -100,5 +108,7 @@ required for production go-live, and remains open at low priority.
   leave the Lead owned by the queue) when `Calendario_Asignaciones` finds
   nothing — before this routing change can be retried. Out of scope for
   MGAgencia's own Apex layer — this is a bug/gap in shared org automation.
-- **Priority**: medium — only matters if/when Decision 1's queue routing
-  is revisited; the current `MGAgencia_Leads` queue works correctly today.
+- **Priority**: high — not just an MGAgencia blocker. If this reproduces
+  the same way for real Meta-sourced Leads (untested, but nothing found
+  ties the crash to MGAgencia's data specifically), it's a live production
+  defect independent of this project and should be escalated as such.
