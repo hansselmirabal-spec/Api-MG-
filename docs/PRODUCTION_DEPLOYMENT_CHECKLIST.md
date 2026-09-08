@@ -277,6 +277,22 @@ Each step is a separate go/no-go — do not batch approvals.
      Baez, Pedro Silke), none by the `Reglas Meta` queue. Confirms the
      `Family__c` exclusion added to that assignment-rule entry (§0) isn't
      misfiring in production.
+   - ✅ **Full external OAuth loop verified independently** — the admin
+     ran the entire `MGAGENCIA_UAT.postman_collection.json` (UAT-1
+     through UAT-10) against `mi-org` using the new
+     `MGAGENCIA_PRODUCTION.postman_environment.json` and real production
+     `client_id`/`client_secret` retrieved from the Connected App. 30/31
+     assertions passed. The one failure (UAT-10, expected 403, got 401)
+     is not a defect — that scenario needs a manually-obtained session
+     token from a user without the `MGAgencia_Integration` permission
+     set (`unauthorized_access_token`), which was never supplied; this
+     mirrors the original sandbox UAT, where the same scenario was never
+     executed live either (`docs/TEST_PLAN.md` §5.2 row g,
+     VERIFIED-BY-CONFIG). This is the strongest confirmation yet: it
+     exercises the real Client Credentials OAuth flow end-to-end through
+     the Connected App, not an internal Apex shortcut like the rest of
+     this step.
+     misfiring in production.
 
    Original plan (superseded by the above — kept for method reference):
    Run the full Apex test suite once more against `mi-org`. Create one
