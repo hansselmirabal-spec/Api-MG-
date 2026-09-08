@@ -292,7 +292,13 @@ Each step is a separate go/no-go — do not batch approvals.
    a Lead created with `LeadSource = Redes Sociales Empresa` and
    `Family__c = AUTOMÓVILES MG` is no longer caught by the `Reglas_Meta`
    entry (§0's assignment-rule addition).
-10. **Close out** `docs/ADMIN_FOLLOWUPS.md` items #1–#3.
+10. ✅ **DONE (2026-09-07)** — **Close out** `docs/ADMIN_FOLLOWUPS.md`
+    items #1–#3. Also updated the MGAgencia-facing delivery docs
+    (`docs/delivery/MGAGENCIA_LEADS_API_{EN,ES}.md` + regenerated PDFs)
+    with the real production base URL and token endpoint
+    (`condorsaci.my.salesforce.com`), which were placeholders
+    ("to be confirmed at go-live") until now. Credentials remain marked
+    pending — step 8 hasn't happened yet.
 
 ---
 

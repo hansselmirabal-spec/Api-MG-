@@ -5,6 +5,12 @@ security, or secret handling). None are blockers for the Apex layer, which is
 deployed and green in `condor-qas`; they are required for a clean production
 cutover and for hardening the sandbox.
 
+**Status (2026-09-07):** items #1–#3 closed as part of the `mi-org`
+production cutover (`docs/PRODUCTION_DEPLOYMENT_CHECKLIST.md` §2). The one
+open sub-task is the manual credential handover under #2 — secret handling
+is intentionally never automated. Item #4 is sandbox-only hardening, not
+required for production go-live, and remains open at low priority.
+
 ## 1. Validation rule `ValidarTareaEstadoContactado` exemption (carried from Phase 6)
 
 - **Status: MOOT (2026-09-07)** — Decision 2 was amended to reuse the
@@ -24,10 +30,16 @@ cutover and for hardening the sandbox.
 
 ## 2. OAuth 2.0 Client Credentials Connected App (Decision 8)
 
-- **What**: production authentication (see `docs/AUTH_SETUP.md`).
-- **Action**: create the Connected App, enable client credentials, set the
-  run-as integration user, decide IP policy, and hand over the consumer
-  secret over an approved channel. Automation must never touch the secret.
+- **Status: DONE (2026-09-07)**, except the secret handover — Connected
+  App `MGAgencia API` created in `mi-org` (via the External Client App
+  Manager — see `docs/AUTH_SETUP.md` §9 gotcha #5), client credentials
+  enabled, `Run As` set to `mgagencia.integration@condor.com.py`, IP
+  Relaxation set to "Rebajar restricciones de IP" (MGAgencia hasn't
+  shared egress IPs yet — revisit once they do). **Remaining**: pull the
+  Consumer Key/Secret from Manage Consumer Details and hand it over
+  through the approved secure channel — this step is manual by design
+  and was not done in this session.
+- **What (original)**: production authentication (see `docs/AUTH_SETUP.md`).
 - **Priority**: high — required before MGAgencia integrates against production.
 
 ## 3. Production integration user

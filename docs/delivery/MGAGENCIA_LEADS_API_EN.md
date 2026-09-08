@@ -1,7 +1,11 @@
-# MGAgencia → Salesforce Leads API — Functional Specification v1.0 (draft for provider review)
+# MGAgencia → Salesforce Leads API — Functional Specification v1.0
 
-**Date:** 2026-09-03
+**Date:** 2026-09-07
 **Prepared by:** Grupo Cóndor
+
+**What's new (2026-09-07):** Production go-live. The production base URL and
+token endpoint are now confirmed (§2, §3). Credentials (`client_id` /
+`client_secret`) are pending delivery through our secure channel — see §3.
 
 **What's new (2026-09-03):** 6 optional request fields were added, surfaced by MGAgencia's UAT: `interest_model`, `contact_preference`, `payment_method`, `purchase_timeline`, `trade_in`, and `test_drive_requested`. These are non-breaking additions within v1 (§1) — no changes required for existing integrations.
 
@@ -34,8 +38,8 @@ MGAgencia  --HTTPS POST-->  Salesforce API
 
 | Environment | Base URL | Notes |
 |---|---|---|
-| Sandbox (UAT) | `https://condorsaci--qas.sandbox.my.salesforce.com` | For integration testing before go-live. |
-| Production | *To be provided at go-live* | Will be shared once UAT is signed off. |
+| Sandbox (UAT) | `https://condorsaci--qas.sandbox.my.salesforce.com` | For integration testing. Kept available after go-live. |
+| Production | `https://condorsaci.my.salesforce.com` | Live as of 2026-09-07. |
 > **Important:** the token must always be requested from the org's own domain (`*.my.salesforce.com` format), never from `test.salesforce.com` or `login.salesforce.com` — those generic domains reject this authentication flow.
 
 | Item | Value |
@@ -54,7 +58,7 @@ MGAgencia  --HTTPS POST-->  Salesforce API
 | Environment | Token endpoint |
 |---|---|
 | Sandbox | `https://condorsaci--qas.sandbox.my.salesforce.com/services/oauth2/token` |
-| Production | `https://<production-domain>.my.salesforce.com/services/oauth2/token` (to be confirmed at go-live) |
+| Production | `https://condorsaci.my.salesforce.com/services/oauth2/token` |
 
 Request parameters (`application/x-www-form-urlencoded`):
 
@@ -64,7 +68,7 @@ Request parameters (`application/x-www-form-urlencoded`):
 | `client_id` | Provided by Grupo Cóndor |
 | `client_secret` | Provided by Grupo Cóndor |
 
-Credentials (`client_id` / `client_secret`) will be delivered by Grupo Cóndor through a secure channel (e.g. a password manager share). **They will never be sent by email or chat in plain text.** Delivery is pending completion of the Connected App provisioning on our side.
+Credentials (`client_id` / `client_secret`) will be delivered by Grupo Cóndor through a secure channel (e.g. a password manager share). **They will never be sent by email or chat in plain text.** The production Connected App is provisioned; credential delivery is in progress.
 
 Every API request must include the access token:
 
@@ -96,7 +100,9 @@ curl -s -X POST "https://condorsaci--qas.sandbox.my.salesforce.com/services/apex
   }'
 ```
 
-> Credentials are **pending delivery** until the Connected App is provisioned. This section describes the confirmed target mechanism; sandbox `client_id`/`client_secret` will follow.
+> The example above uses the sandbox host; swap in the production host from
+> §2/§3 once you have production credentials. Credentials (`client_id` /
+> `client_secret`) are **pending delivery** through our secure channel.
 
 ---
 
