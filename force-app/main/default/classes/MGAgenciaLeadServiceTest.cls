@@ -246,4 +246,66 @@ private class MGAgenciaLeadServiceTest {
         System.assert(flagged.Duplicate_Reason__c.contains('MOBILE_PHONE_MATCH'),
             'Reason records the phone signal, got: ' + flagged.Duplicate_Reason__c);
     }
+
+    /**
+     * Regression (found 2026-09-15): same failure class as DEF-001, but for
+     * MGAgenciaIntegrationLogger instead of MGAgenciaDuplicateEvaluator. Under the real
+     * least-privilege integration profile, the created Lead ends up owned by a queue (MQL)
+     * the integration user is not a member of. MGAgenciaIntegrationLogger.log() inserted the
+     * log record in USER_MODE, whose Lead__c lookup references that Lead — the sharing-
+     * enforced insert failed silently (caught, only System.debug'd), so real production
+     * requests left zero MGAgencia_Integration_Log__c rows despite every admin-run test
+     * passing, because admin-run inserts are never sharing-restricted. Traceability must
+     * never silently fail regardless of which queue ends up owning the Lead.
+     */
+    @IsTest
+    static void integrationLogIsWrittenUnderLeastPrivilegeIntegrationUser() {
+        List<Profile> profiles = [SELECT Id FROM Profile
+                                  WHERE Name = 'Minimum Access - API Only Integrations' LIMIT 1];
+        if (profiles.isEmpty()) {
+            profiles = [SELECT Id FROM Profile
+                        WHERE UserLicense.Name = 'Salesforce Integration' LIMIT 1];
+        }
+        System.assertEquals(1, profiles.size(),
+            'An API-only integration profile must exist in the org for this regression test');
+
+        String unique = String.valueOf(Crypto.getRandomInteger()).replace('-', '') + Datetime.now().getTime();
+        User restricted = new User(
+            ProfileId = profiles[0].Id,
+            Username = 'mga.log.' + unique + '@condor.com.py.qas.test',
+            Email = 'mga.log@example.com',
+            LastName = 'Integration',
+            Alias = 'mgalog',
+            TimeZoneSidKey = 'America/Asuncion',
+            LocaleSidKey = 'es_PY',
+            EmailEncodingKey = 'UTF-8',
+            LanguageLocaleKey = 'es'
+        );
+        PermissionSet permissionSet = [SELECT Id FROM PermissionSet
+                                       WHERE Name = 'MGAgencia_Integration' LIMIT 1];
+        PermissionSetLicense psl = [SELECT Id FROM PermissionSetLicense
+                                    WHERE DeveloperName = 'SalesforceAPIIntegrationPsl' LIMIT 1];
+        System.runAs(new User(Id = UserInfo.getUserId())) {
+            insert restricted;
+            insert new PermissionSetLicenseAssign(
+                AssigneeId = restricted.Id, PermissionSetLicenseId = psl.Id);
+            insert new PermissionSetAssignment(
+                AssigneeId = restricted.Id, PermissionSetId = permissionSet.Id);
+        }
+
+        System.runAs(restricted) {
+            Test.startTest();
+            MGAgenciaLeadService.process(
+                buildRequest('595981698222', 'restricted.log@example.com', 'neb-svc-logfix-a'));
+            Test.stopTest();
+        }
+
+        Lead created = [SELECT Id FROM Lead WHERE External_Lead_Id__c = 'neb-svc-logfix-a'];
+        System.assertEquals(1,
+            [SELECT COUNT() FROM MGAgencia_Integration_Log__c
+             WHERE External_Lead_Id__c = 'neb-svc-logfix-a' AND Lead__c = :created.Id
+             AND Status__c = 'CREATED'],
+            'Integration log must be written even when the restricted integration user cannot '
+            + 'see the queue that ends up owning the created Lead');
+    }
 }
