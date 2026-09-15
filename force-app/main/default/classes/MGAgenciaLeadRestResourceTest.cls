@@ -314,7 +314,8 @@ private class MGAgenciaLeadRestResourceTest {
         System.assertEquals(201, RestContext.response.statusCode, 'Omitting all new fields is valid');
         Lead created = [SELECT VehicleOfInterestOfTheWeb__c, Preferencia_de_contacto__c,
                                 Forma_de_Pago__c, Plazo_de_Compra__c, Entrega_su_Auto__c,
-                                TestDriveRequested__c
+                                TestDriveRequested__c, LeadSource, ID_Meta__c,
+                                Identificador_Lead_Capture__c, campa_a_meta__c, Descripci_n_de_Meta__c
                          FROM Lead WHERE External_Lead_Id__c = 'neb-rest-optabsent'];
         System.assertEquals(null, created.VehicleOfInterestOfTheWeb__c, 'interest_model left blank');
         System.assertEquals(null, created.Preferencia_de_contacto__c, 'contact_preference left blank');
@@ -322,5 +323,105 @@ private class MGAgenciaLeadRestResourceTest {
         System.assertEquals(null, created.Plazo_de_Compra__c, 'purchase_timeline left blank');
         System.assertEquals(null, created.Entrega_su_Auto__c, 'trade_in left blank');
         System.assertEquals(false, created.TestDriveRequested__c, 'TestDriveRequested__c keeps its org default');
+        System.assertEquals('MGAgencia', created.LeadSource,
+            'platform absent: LeadSource keeps the current fixed CMDT value unchanged (regression guard)');
+        System.assertEquals(null, created.ID_Meta__c, 'meta_lead_id left blank');
+        System.assertEquals(null, created.Identificador_Lead_Capture__c, 'meta_form_id left blank');
+        System.assertEquals(null, created.campa_a_meta__c, 'campaign_name left blank');
+        System.assertEquals(null, created.Descripci_n_de_Meta__c, 'campaign_description left blank');
+    }
+
+    // ---- 2026-09-15 provisional platform + Meta fields (PENDING MGAgencia confirmation) -----
+
+    @IsTest
+    static void validPlatformFacebookResolvesLeadSource() {
+        arrangeRequest(JSON.serialize(new Map<String, Object>{
+            'first_name' => 'Ana', 'last_name' => 'Diaz', 'phone' => '595981111010',
+            'platform' => 'facebook', 'external_lead_id' => 'neb-rest-plat-fb'
+        }));
+
+        Test.startTest();
+        MGAgenciaLeadRestResource.createLead();
+        Test.stopTest();
+
+        System.assertEquals(201, RestContext.response.statusCode, 'Created');
+        Lead created = [SELECT LeadSource FROM Lead WHERE External_Lead_Id__c = 'neb-rest-plat-fb'];
+        System.assertEquals('Redes Sociales Empresa', created.LeadSource, 'facebook resolves to Redes Sociales Empresa');
+    }
+
+    @IsTest
+    static void validPlatformWebResolvesLeadSource() {
+        arrangeRequest(JSON.serialize(new Map<String, Object>{
+            'first_name' => 'Ana', 'last_name' => 'Diaz', 'phone' => '595981111011',
+            'platform' => 'web', 'external_lead_id' => 'neb-rest-plat-web'
+        }));
+
+        Test.startTest();
+        MGAgenciaLeadRestResource.createLead();
+        Test.stopTest();
+
+        System.assertEquals(201, RestContext.response.statusCode, 'Created');
+        Lead created = [SELECT LeadSource FROM Lead WHERE External_Lead_Id__c = 'neb-rest-plat-web'];
+        System.assertEquals('Web', created.LeadSource, 'web resolves to Web');
+    }
+
+    @IsTest
+    static void unknownPlatformReturns422UnknownValue() {
+        arrangeRequest(JSON.serialize(new Map<String, Object>{
+            'first_name' => 'Ana', 'last_name' => 'Diaz', 'phone' => '595981111012',
+            'platform' => 'linkedin'
+        }));
+
+        Test.startTest();
+        MGAgenciaLeadRestResource.createLead();
+        Test.stopTest();
+
+        System.assertEquals(422, RestContext.response.statusCode, 'Unknown platform returns 422');
+        Map<String, Object> error = (Map<String, Object>) ((List<Object>) responseBody().get('errors'))[0];
+        System.assertEquals('platform', error.get('field'), 'platform field reported');
+        System.assertEquals('UNKNOWN_VALUE', error.get('code'), 'Unknown-value error code');
+        System.assertEquals(0, [SELECT COUNT() FROM Lead], 'No Lead created');
+    }
+
+    @IsTest
+    static void metaFieldsPopulateCorrectlyEndToEnd() {
+        arrangeRequest(JSON.serialize(new Map<String, Object>{
+            'first_name' => 'Sofia', 'last_name' => 'Ramirez', 'phone' => '595981111013',
+            'external_lead_id' => 'neb-rest-meta-fields',
+            'meta_lead_id' => '1607897840722926',
+            'meta_form_id' => '576307582233754',
+            'campaign_name' => 'Video| Producto | MG ZS',
+            'campaign_description' => 'Campaña de lanzamiento'
+        }));
+
+        Test.startTest();
+        MGAgenciaLeadRestResource.createLead();
+        Test.stopTest();
+
+        System.assertEquals(201, RestContext.response.statusCode, 'Created');
+        Lead created = [SELECT ID_Meta__c, Identificador_Lead_Capture__c, campa_a_meta__c, Descripci_n_de_Meta__c
+                         FROM Lead WHERE External_Lead_Id__c = 'neb-rest-meta-fields'];
+        System.assertEquals('1607897840722926', created.ID_Meta__c, 'meta_lead_id stored');
+        System.assertEquals('576307582233754', created.Identificador_Lead_Capture__c, 'meta_form_id stored');
+        System.assertEquals('Video| Producto | MG ZS', created.campa_a_meta__c, 'campaign_name stored');
+        System.assertEquals('Campaña de lanzamiento', created.Descripci_n_de_Meta__c, 'campaign_description stored');
+    }
+
+    @IsTest
+    static void campaignNameExceedingMaxLengthReturns422InvalidFormat() {
+        arrangeRequest(JSON.serialize(new Map<String, Object>{
+            'first_name' => 'Ana', 'last_name' => 'Diaz', 'phone' => '595981111014',
+            'campaign_name' => 'x'.repeat(251)
+        }));
+
+        Test.startTest();
+        MGAgenciaLeadRestResource.createLead();
+        Test.stopTest();
+
+        System.assertEquals(422, RestContext.response.statusCode, 'Over-length campaign_name returns 422');
+        Map<String, Object> error = (Map<String, Object>) ((List<Object>) responseBody().get('errors'))[0];
+        System.assertEquals('campaign_name', error.get('field'), 'campaign_name field reported');
+        System.assertEquals('INVALID_FORMAT', error.get('code'), 'Invalid-format error code');
+        System.assertEquals(0, [SELECT COUNT() FROM Lead], 'No Lead created');
     }
 }

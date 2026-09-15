@@ -256,7 +256,7 @@ Applied to every API-created Lead; MGAgencia sends none of these.
 | `Family__c` | `AUTOMÓVILES MG` | Custom Metadata | CONFIRMED — Decision 3 |
 | `Brand__c` | `MG` | Custom Metadata | CONFIRMED — Decision 3 |
 | `Status` | `Formulario Meta` (reused existing value, amended 2026-09-07) | Fixed initial value at insert | CONFIRMED — Decision 2 |
-| `LeadSource` | `MGAgencia` (new picklist value) | Fixed value at insert | CONFIRMED — Decision 2 |
+| `LeadSource` | `MGAgencia` (new picklist value) | Fixed value at insert, unless `platform` is sent (§13, PROVISIONAL 2026-09-15) — see `MGAgenciaPlatformResolver` | CONFIRMED — Decision 2 |
 | Owner / queue | Ends up owned by queue `MQL` (amended 2026-09-08) | `MGAgenciaLeadService.insertLead` resolves the target queue from CMDT (`Queue_DeveloperName__c = 'Reglas_Meta'`) and sets `Lead.OwnerId` directly — not via the org's assignment-rule engine. The org's own automation then reassigns `Estatus__c = 'Nuevo'` Leads to queue `MQL`. Required a branch-label casing fix (`MGAgenciaBranchResolver` now writes `asunción`/`ciudad_del_este`/etc., lowercase_with_underscores, matching real Meta Leads and `Calendario_de_Asignaciones__c`) after 4 earlier failed attempts — see `docs/DECISIONS.md` Decision 1, fifth attempt, and `docs/ADMIN_FOLLOWUPS.md` #5 | CONFIRMED — Decision 1 (amended 2026-09-08) |
 | `VendorCode2__c` / `CodigoVendedorAsignacion` VR | Not populated by MGAgencia | VR bypassed via custom permission granted only to the integration user | CONFIRMED — Decision 1 |
 
@@ -308,3 +308,26 @@ MGAgencia's provider UAT completed successfully (18/18, including a real synced 
 Both `Forma_de_Pago__c` and `Plazo_de_Compra__c` are plain text fields in this org, not picklists — need to confirm with business whether MGAgencia's form uses fixed catalog values (financing type, term in months) that should map to a controlled picklist, or free text is acceptable.
 
 **PENDING BUSINESS DECISION**: confirm exact field names/labels MGAgencia's form uses for financing questions, whether values are free text or from a fixed catalog, and whether `test_drive_requested` (boolean) plus `test_drive_type` should be added to the v1 contract now or deferred to a v1.1 addendum.
+
+## 13. Admin/mkt request — dynamic LeadSource and Meta fields (2026-09-15, PROVISIONAL)
+
+Source: "Cambios MG Agencia.docx", relayed by the admin/marketing team. Implemented on our side in `condor-qas` only, pending MGAgencia's confirmation that they can send the new request fields (see the heads-up note sent to MGAgencia). Not yet deployed to `mi-org`.
+
+**LeadSource fields confirmed via `sf sobject describe -s Lead`**: `Redes Sociales Empresa` and `Web` are active in both `condor-qas` and `mi-org`. `Tiktok` (exact casing, capital T only) is active in `mi-org` but **not in `condor-qas`** — sandbox is stale on this value, same class of drift as Decision 7's branch-casing bug. A live sandbox test inserting `platform=tiktok` will fail in `condor-qas` for that reason alone; add the value there before relying on a full live test.
+
+**4 new Lead fields confirmed via Tooling API `FieldDefinition`/`CustomField`** — all free text, no dependent picklist:
+
+| Field | Type | Notes |
+|---|---|---|
+| `ID_Meta__c` | Text(250) | No description/help text in the org. Confirmed via 5 real Leads to hold a value consistently different from `Identificador_Lead_Capture__c` — genuinely distinct data, not a duplicate. |
+| `Identificador_Lead_Capture__c` | Text(255) | Same as above — distinct from `ID_Meta__c`. |
+| `campa_a_meta__c` | Text(250) | Drives the existing active flow `Actualizar_Campa_as_Digitales` (see below). |
+| `Descripci_n_de_Meta__c` | Long text area(32768) | Help text: "SIrve para los formularios de metas su descripción". |
+
+Searched every Flow/ApexTrigger/ApexClass in the org for references to `ID_Meta__c` / `Identificador_Lead_Capture__c`: **zero matches**. Nothing internal defines their semantics — they're populated by something outside our metadata (almost certainly a native Meta Lead Ads connector). Since no ground truth exists to reverse-engineer, the exact mapping of MGAgencia's raw data to these two fields is **our own contract design**, confirmed with the business owner in this conversation, not an invented Salesforce business rule.
+
+**`Actualizar_Campa_as_Digitales` flow (already active, unmodified by us)**: `RecordAfterSave`, `Create`, fires when `LeadSource` ∈ {`Redes Sociales Empresa`, `Redes Sociales Propias del Vendedor`}, 1 minute after insert. Looks up `Campaign` by `Name = campa_a_meta__c`; if found, sets `Lead.Campana__c`; if not found, **creates** a new `Campaign` (`Name = campa_a_meta__c`, `ParentId` hardcoded to `701TS00000ZJ785YAD`) and links it. This means populating `LeadSource = Redes Sociales Empresa` + `campa_a_meta__c` is enough to get Campaign creation/linking for free — no new automation needed on our side.
+
+**Contract additions** (`docs/API_SPEC.md` §3): `platform`, `meta_lead_id`, `meta_form_id`, `campaign_name`, `campaign_description` — all optional, resolved by `MGAgenciaPlatformResolver` (`platform` → `LeadSource`) and direct pass-through (the other 4). See `docs/DECISIONS.md` for the full decision record.
+
+**PENDING BUSINESS DECISION**: MGAgencia has not yet confirmed they can send these fields. Field names (`platform`, `meta_lead_id`, `meta_form_id`, `campaign_name`, `campaign_description`) are our proposal, not yet a finalized external contract.

@@ -139,11 +139,27 @@ public with sharing class MGAgenciaLeadService {
             // separate org mechanism reassigns Estatus__c = 'Nuevo' Leads to the MQL queue
             // regardless of the assignment rule's target queue.
             Estatus__c = 'Nuevo',
-            LeadSource = config.Lead_Source__c,
+            // Decision (2026-09-15, PROVISIONAL pending MGAgencia confirmation): LeadSource
+            // resolves per-platform when `platform` is sent (see MGAgenciaPlatformResolver);
+            // absent/blank keeps the current fixed value from CMDT, unchanged from today.
+            LeadSource = String.isNotBlank(request.platform)
+                ? MGAgenciaPlatformResolver.resolve(request.platform)
+                : config.Lead_Source__c,
             Family__c = config.Family__c,
             Brand__c = config.Brand__c,
             Duplicated_Lead__c = duplicate.isDuplicate,
-            Duplicate_Reason__c = duplicate.reason
+            Duplicate_Reason__c = duplicate.reason,
+            // Added 2026-09-15: provisional Meta identifiers/campaign fields (PENDING
+            // MGAgencia confirmation). campaign_name also feeds the org's existing
+            // Actualizar_Campa_as_Digitales flow (Campaign auto-create/link) once LeadSource
+            // resolves into Redes Sociales Empresa/Propias del Vendedor — no new automation
+            // needed on our side for that.
+            ID_Meta__c = String.isBlank(request.meta_lead_id) ? null : request.meta_lead_id.trim(),
+            Identificador_Lead_Capture__c = String.isBlank(request.meta_form_id)
+                ? null : request.meta_form_id.trim(),
+            campa_a_meta__c = String.isBlank(request.campaign_name) ? null : request.campaign_name.trim(),
+            Descripci_n_de_Meta__c = String.isBlank(request.campaign_description)
+                ? null : request.campaign_description.trim()
         );
     }
 
