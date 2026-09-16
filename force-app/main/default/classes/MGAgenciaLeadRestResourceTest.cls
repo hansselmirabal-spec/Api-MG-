@@ -325,7 +325,8 @@ private class MGAgenciaLeadRestResourceTest {
         System.assertEquals(false, created.TestDriveRequested__c, 'TestDriveRequested__c keeps its org default');
         System.assertEquals('MGAgencia', created.LeadSource,
             'platform absent: LeadSource keeps the current fixed CMDT value unchanged (regression guard)');
-        System.assertEquals(null, created.ID_Meta__c, 'meta_lead_id left blank');
+        System.assertEquals('neb-rest-optabsent', created.ID_Meta__c,
+            'ID_Meta__c mirrors external_lead_id regardless of the other new fields (confirmed by MGAgencia 2026-09-16: no separate meta_lead_id is ever sent)');
         System.assertEquals(null, created.Identificador_Lead_Capture__c, 'meta_form_id left blank');
         System.assertEquals(null, created.campa_a_meta__c, 'campaign_name left blank');
         System.assertEquals(null, created.Descripci_n_de_Meta__c, 'campaign_description left blank');
@@ -388,7 +389,6 @@ private class MGAgenciaLeadRestResourceTest {
         arrangeRequest(JSON.serialize(new Map<String, Object>{
             'first_name' => 'Sofia', 'last_name' => 'Ramirez', 'phone' => '595981111013',
             'external_lead_id' => 'neb-rest-meta-fields',
-            'meta_lead_id' => '1607897840722926',
             'meta_form_id' => '576307582233754',
             'campaign_name' => 'Video| Producto | MG ZS',
             'campaign_description' => 'Campaña de lanzamiento'
@@ -401,7 +401,8 @@ private class MGAgenciaLeadRestResourceTest {
         System.assertEquals(201, RestContext.response.statusCode, 'Created');
         Lead created = [SELECT ID_Meta__c, Identificador_Lead_Capture__c, campa_a_meta__c, Descripci_n_de_Meta__c
                          FROM Lead WHERE External_Lead_Id__c = 'neb-rest-meta-fields'];
-        System.assertEquals('1607897840722926', created.ID_Meta__c, 'meta_lead_id stored');
+        System.assertEquals('neb-rest-meta-fields', created.ID_Meta__c,
+            'ID_Meta__c mirrors external_lead_id (confirmed by MGAgencia 2026-09-16: same underlying Meta id, no separate meta_lead_id field)');
         System.assertEquals('576307582233754', created.Identificador_Lead_Capture__c, 'meta_form_id stored');
         System.assertEquals('Video| Producto | MG ZS', created.campa_a_meta__c, 'campaign_name stored');
         System.assertEquals('Campaña de lanzamiento', created.Descripci_n_de_Meta__c, 'campaign_description stored');

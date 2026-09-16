@@ -76,11 +76,12 @@ array/batch wrapping).
 | `purchase_timeline` | string | Optional | Confirmed (2026-09-03) | Purchase timeline, free text. Max 50 characters — same overflow behavior as `interest_model`. |
 | `trade_in` | string | Optional | Confirmed (2026-09-03) | Trade-in intent, free text. Max 50 characters — same overflow behavior as `interest_model`. |
 | `test_drive_requested` | boolean | Optional | Confirmed (2026-09-03) | Whether a test drive was requested. Simple pass-through, no validation. |
-| `platform` | string | Optional | **PROVISIONAL (2026-09-15)** | Lead origin: `facebook`, `instagram`, `tiktok`, or `web` (exact lowercase match). Resolves `LeadSource` internally. An unknown value is rejected with 422 (`UNKNOWN_VALUE`); omitting the field keeps today's fixed `LeadSource` behavior unchanged. Pending MGAgencia confirming they will send this. |
-| `meta_lead_id` | string | Optional | **PROVISIONAL (2026-09-15)** | Meta's individual lead submission id. Max 250 characters, same overflow behavior as `interest_model`. |
-| `meta_form_id` | string | Optional | **PROVISIONAL (2026-09-15)** | Meta's lead form/ad id. Max 255 characters, same overflow behavior. |
-| `campaign_name` | string | Optional | **PROVISIONAL (2026-09-15)** | Campaign name. Max 250 characters, same overflow behavior. When `platform` resolves to a "Redes Sociales" LeadSource, this also drives automatic Campaign creation/linking inside Salesforce. |
-| `campaign_description` | string | Optional | **PROVISIONAL (2026-09-15)** | Campaign description. Max 32768 characters, same overflow behavior. |
+| `platform` | string | Optional | Confirmed by MGAgencia (2026-09-16) | Lead origin: `facebook`, `instagram`, `tiktok`, or `web` (exact lowercase match). Resolves `LeadSource` internally. An unknown value is rejected with 422 (`UNKNOWN_VALUE`); omitting the field keeps today's fixed `LeadSource` behavior unchanged. |
+| `meta_form_id` | string | Optional | Confirmed by MGAgencia (2026-09-16) | Meta's lead form/ad id. Max 255 characters, same overflow behavior as `interest_model`. |
+| `campaign_name` | string | Optional | Confirmed by MGAgencia (2026-09-16) | Campaign name. Max 250 characters, same overflow behavior. When `platform` resolves to a "Redes Sociales" LeadSource, this also drives automatic Campaign creation/linking inside Salesforce. |
+| `campaign_description` | string | Optional | **Never available (confirmed by MGAgencia, 2026-09-16)** | Campaign description. The ad platform does not provide this data — MGAgencia confirmed they cannot send it. The field/mapping stays available for forward compatibility (e.g. a future non-Meta origin) but will realistically always be null for Meta-sourced leads. |
+
+Note: there is no separate `meta_lead_id` field. MGAgencia confirmed (2026-09-16) that Meta's individual lead id already travels via the existing `external_lead_id` field — internally it is copied onto `ID_Meta__c` from that same value, with no new request field required.
 
 ### 3.1 Example request
 

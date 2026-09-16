@@ -36,8 +36,6 @@ public with sharing class MGAgenciaLeadRequest {
      *              LeadSource (see MGAgenciaPlatformResolver). Absent/blank keeps today's fixed
      *              LeadSource from MGAgencia_Integration_Setting__mdt.Lead_Source__c. */
     public String platform;
-    /** @description Meta's individual lead submission id. Free text, max 250 chars. */
-    public String meta_lead_id;
     /** @description Meta's lead form/ad id. Free text, max 255 chars. */
     public String meta_form_id;
     /** @description Campaign name; also drives the org's existing Actualizar_Campa_as_Digitales
