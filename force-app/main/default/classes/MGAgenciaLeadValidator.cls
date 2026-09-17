@@ -24,6 +24,14 @@ public with sharing class MGAgenciaLeadValidator {
     private static final Integer PURCHASE_TIMELINE_MAX_LENGTH = 50;
     private static final Integer TRADE_IN_MAX_LENGTH = 50;
 
+    // Added 2026-09-15: provisional platform/Meta fields, confirmed by MGAgencia on 2026-09-16.
+    // Lengths match Identificador_Lead_Capture__c, campa_a_meta__c, Descripci_n_de_Meta__c,
+    // confirmed via Tooling API FieldDefinition on 2026-09-15. ID_Meta__c has no length check
+    // here — it's populated from external_lead_id (already validated as-is elsewhere).
+    private static final Integer META_FORM_ID_MAX_LENGTH = 255;
+    private static final Integer CAMPAIGN_NAME_MAX_LENGTH = 250;
+    private static final Integer CAMPAIGN_DESCRIPTION_MAX_LENGTH = 32768;
+
     /**
      * @description Validates the parsed request and returns every problem found.
      * @param request parsed request DTO (never null)
@@ -56,6 +64,13 @@ public with sharing class MGAgenciaLeadValidator {
         addMaxLengthError(errors, 'payment_method', request.payment_method, PAYMENT_METHOD_MAX_LENGTH);
         addMaxLengthError(errors, 'purchase_timeline', request.purchase_timeline, PURCHASE_TIMELINE_MAX_LENGTH);
         addMaxLengthError(errors, 'trade_in', request.trade_in, TRADE_IN_MAX_LENGTH);
+        if (String.isNotBlank(request.platform) && !MGAgenciaPlatformResolver.isKnownValue(request.platform)) {
+            errors.add(new MGAgenciaLeadResponse.ErrorDetail('platform', 'UNKNOWN_VALUE',
+                'platform does not match a known value.'));
+        }
+        addMaxLengthError(errors, 'meta_form_id', request.meta_form_id, META_FORM_ID_MAX_LENGTH);
+        addMaxLengthError(errors, 'campaign_name', request.campaign_name, CAMPAIGN_NAME_MAX_LENGTH);
+        addMaxLengthError(errors, 'campaign_description', request.campaign_description, CAMPAIGN_DESCRIPTION_MAX_LENGTH);
         return errors;
     }
 
