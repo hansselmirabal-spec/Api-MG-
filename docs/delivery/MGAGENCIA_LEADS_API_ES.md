@@ -323,7 +323,7 @@ Ejecutar los siguientes escenarios contra el entorno sandbox antes del pase a pr
 
 | Elemento | Detalle |
 |---|---|
-| Contacto | *[Contacto de integración de Grupo Cóndor — a confirmar]* |
+| Contacto | Hanssel Mirabal — `hanssel.mirabal@grupocondor.com.py` |
 | Comunicación de cambios | Todo cambio a este contrato (campos nuevos o modificados, códigos de estado o comportamiento) se comunicará a MGAgencia por escrito antes de su despliegue. Los cambios disruptivos se publican bajo una nueva versión de la API (§1); los cambios no disruptivos se documentan como una actualización de esta especificación. |
 
 ---

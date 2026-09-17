@@ -321,7 +321,7 @@ Run the following scenarios against the sandbox environment before go-live:
 
 | Item | Detail |
 |---|---|
-| Contact | *[Grupo Cóndor integration contact — to be provided]* |
+| Contact | Hanssel Mirabal — `hanssel.mirabal@grupocondor.com.py` |
 | Change communication | Any change to this contract (new/changed fields, status codes, or behavior) will be communicated to MGAgencia in writing before deployment. Breaking changes are released under a new API version (§1); non-breaking changes are documented as an update to this specification. |
 
 ---
