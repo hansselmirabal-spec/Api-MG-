@@ -335,10 +335,10 @@ private class MGAgenciaLeadRestResourceTest {
     // ---- 2026-09-15 provisional platform + Meta fields (PENDING MGAgencia confirmation) -----
 
     @IsTest
-    static void validPlatformFacebookResolvesLeadSource() {
+    static void validPlatformFbResolvesLeadSource() {
         arrangeRequest(JSON.serialize(new Map<String, Object>{
             'first_name' => 'Ana', 'last_name' => 'Diaz', 'phone' => '595981111010',
-            'platform' => 'facebook', 'external_lead_id' => 'neb-rest-plat-fb'
+            'platform' => 'fb', 'external_lead_id' => 'neb-rest-plat-fb'
         }));
 
         Test.startTest();
@@ -347,7 +347,7 @@ private class MGAgenciaLeadRestResourceTest {
 
         System.assertEquals(201, RestContext.response.statusCode, 'Created');
         Lead created = [SELECT LeadSource FROM Lead WHERE External_Lead_Id__c = 'neb-rest-plat-fb'];
-        System.assertEquals('Redes Sociales Empresa', created.LeadSource, 'facebook resolves to Redes Sociales Empresa');
+        System.assertEquals('Redes Sociales Empresa', created.LeadSource, 'fb resolves to Redes Sociales Empresa');
     }
 
     @IsTest

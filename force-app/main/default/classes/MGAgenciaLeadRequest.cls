@@ -32,9 +32,11 @@ public with sharing class MGAgenciaLeadRequest {
     // Added 2026-09-15: provisional per-platform origin + Meta identifiers (docs/DECISIONS.md,
     // "Cambios MG Agencia.docx" admin/mkt request). PENDING MGAgencia confirmation that they will
     // actually send these — all optional, additive, no version bump, existing traffic unaffected.
-    /** @description Lead origin. One of 'facebook', 'instagram', 'tiktok', 'web' — resolves
-     *              LeadSource (see MGAgenciaPlatformResolver). Absent/blank keeps today's fixed
-     *              LeadSource from MGAgencia_Integration_Setting__mdt.Lead_Source__c. */
+    /** @description Lead origin. One of 'fb', 'ig', 'tiktok', 'web' — resolves LeadSource (see
+     *              MGAgenciaPlatformResolver). 'fb'/'ig' confirmed 2026-09-17 against real
+     *              MGAgencia traffic (Meta's own short codes); 'tiktok'/'web' still provisional.
+     *              Absent/blank keeps today's fixed LeadSource from
+     *              MGAgencia_Integration_Setting__mdt.Lead_Source__c. */
     public String platform;
     /** @description Meta's lead form/ad id. Free text, max 255 chars. */
     public String meta_form_id;
