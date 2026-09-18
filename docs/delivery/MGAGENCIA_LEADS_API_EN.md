@@ -3,7 +3,7 @@
 **Date:** 2026-09-07
 **Prepared by:** Grupo Cóndor
 
-**What's new (2026-09-17):** 4 new optional request fields added: `platform`, `meta_form_id`, `campaign_name`, `campaign_description` (§4). Non-breaking additions — existing integrations are unaffected if these fields are omitted.
+**What's new (2026-09-17):** 4 new optional request fields added: `platform`, `meta_form_id`, `campaign_name`, `campaign_description` (§4). Non-breaking additions — existing integrations are unaffected if these fields are omitted. **These fields are live in Sandbox now for testing; not yet deployed to Production.** Please validate against the Sandbox environment (§2) — we'll confirm here once they're live in Production.
 
 **What's new (2026-09-07):** Production go-live. The production base URL and
 token endpoint are now confirmed (§2, §3). Credentials (`client_id` /
