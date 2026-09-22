@@ -3,7 +3,7 @@
 **Fecha:** 2026-09-07
 **Elaborado por:** Grupo Cóndor
 
-**Novedades (2026-09-17):** se agregaron 4 campos opcionales nuevos: `platform`, `meta_form_id`, `campaign_name`, `campaign_description` (§4). Son adiciones no disruptivas — las integraciones existentes no se ven afectadas si se omiten. **Estos campos ya están disponibles en Sandbox para pruebas; todavía no se desplegaron a Producción.** Por favor validen contra el entorno de Sandbox (§2) — les avisamos acá cuando estén en vivo en Producción.
+**Novedades (2026-09-22):** los campos `platform`, `meta_form_id`, `campaign_name`, `campaign_description` (§4, agregados el 2026-09-17) ya están **en vivo en Producción**, además de Sandbox. Son adiciones no disruptivas — ninguna integración existente que los omita se ve afectada.
 
 **Novedades (2026-09-07):** Pase a producción. La URL base y el endpoint de
 token de producción ya están confirmados (§2, §3). Las credenciales
