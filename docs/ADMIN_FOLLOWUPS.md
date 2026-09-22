@@ -158,3 +158,43 @@ required for production go-live, and remains open at low priority.
   blocks MGAgencia (worked around, see Status above). Still two real,
   reproducible defects in shared org automation/config; worth fixing
   upstream at some point, but not urgent for this project anymore.
+
+## 6. `Task` missing from `Reglas_Meta`'s supported objects — hit a second, different flow (`DatosInicialesProspecto`, 2026-09-22)
+
+- **Status: RESOLVED in `condor-qas`, OPEN in `mi-org` (2026-09-22).**
+- Symptom, reported by MGAgencia directly: `POST /leads` with
+  `test_drive_requested: true` returns `500 INTERNAL_ERROR` in `condor-qas`.
+  Verified live in both orgs via `MGAgenciaLeadService.process()`: fails
+  identically in `mi-org` (production) as of 2026-09-22.
+- Root cause: same structural gap as item #5 above (`Reglas_Meta` queue
+  missing `Task` from its supported object types), but hit through a
+  **different** flow — `DatosInicialesProspecto` — which creates a
+  follow-up Task whenever `TestDriveRequested__c = true` at Lead creation,
+  while `OwnerId` is still the `Reglas_Meta` queue (before any later
+  reassignment to `MQL`). `INVALID_OPERATION: Queue not associated with
+  this SObject type` on the Task insert, which rolls back the whole Lead
+  creation.
+- Why it went unnoticed since `test_drive_requested` was added
+  (2026-09-03): our own Apex test suite passes a `test_drive_requested =
+  true` scenario end-to-end (`MGAgenciaLeadRestResourceTest.
+  optionalFieldsPopulateCorrectlyEndToEnd`) — this is a **false positive**.
+  Salesforce test context does not reproduce this failure (same class of
+  test-isolation gap already seen with the calendar-guard flow in item #5
+  — automation dependent on real org data/config behaves differently
+  inside `@IsTest`). Real MGAgencia traffic apparently never actually sent
+  `test_drive_requested: true` until MGAgencia's own client tested it live
+  on 2026-09-22.
+- Fix applied: admin added `Task` to `Reglas_Meta`'s supported object
+  types in **`condor-qas`** on 2026-09-22 (confirmed via Setup → Colas,
+  and via `QueueSobject` query — `Reglas_Meta` now lists both `Lead` and
+  `Task`). Re-tested live: `test_drive_requested: true` now returns `201`
+  in `condor-qas`.
+- **Still open**: `mi-org` (production) was NOT fixed — `Reglas_Meta` and
+  `MQL` both still list only `Lead` in `QueueSobject` there as of
+  2026-09-22. `test_drive_requested` is a live, currently-accepted field
+  in production today; any real lead sent with that flag set to `true`
+  will fail with `500` in production right now. **Action needed**: admin
+  to apply the same `Task` addition to `Reglas_Meta` (and `MQL`, since
+  Estatus__c='Nuevo' Leads end up there) in `mi-org`.
+- **Priority**: high — active production defect affecting real traffic,
+  not just a sandbox/testing gap.

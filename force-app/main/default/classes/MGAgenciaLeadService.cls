@@ -109,6 +109,8 @@ public with sharing class MGAgenciaLeadService {
             throw new MGAgenciaConfigurationException(
                 'Configured Lead record type not found: ' + config.Record_Type_DeveloperName__c);
         }
+        String externalLeadId = String.isBlank(request.external_lead_id)
+            ? null : request.external_lead_id.trim();
         return new Lead(
             RecordTypeId = recordType.getRecordTypeId(),
             FirstName = request.first_name.trim(),
@@ -121,8 +123,7 @@ public with sharing class MGAgenciaLeadService {
             // Decision 7 amendment (2026-09-03): branch_code now targets the free-text
             // Sucursal_Seleccionada_Meta__c field, not the Nearest_Branch__c picklist.
             Sucursal_Seleccionada_Meta__c = MGAgenciaBranchResolver.resolve(request.branch_code),
-            External_Lead_Id__c = String.isBlank(request.external_lead_id)
-                ? null : request.external_lead_id.trim(),
+            External_Lead_Id__c = externalLeadId,
             // Added 2026-09-03: MGAgencia UAT follow-up fields, all optional and additive.
             VehicleOfInterestOfTheWeb__c = String.isBlank(request.interest_model)
                 ? null : request.interest_model.trim(),
@@ -139,11 +140,29 @@ public with sharing class MGAgenciaLeadService {
             // separate org mechanism reassigns Estatus__c = 'Nuevo' Leads to the MQL queue
             // regardless of the assignment rule's target queue.
             Estatus__c = 'Nuevo',
-            LeadSource = config.Lead_Source__c,
+            // Decision (2026-09-15, PROVISIONAL pending MGAgencia confirmation): LeadSource
+            // resolves per-platform when `platform` is sent (see MGAgenciaPlatformResolver);
+            // absent/blank keeps the current fixed value from CMDT, unchanged from today.
+            LeadSource = String.isNotBlank(request.platform)
+                ? MGAgenciaPlatformResolver.resolve(request.platform)
+                : config.Lead_Source__c,
             Family__c = config.Family__c,
             Brand__c = config.Brand__c,
             Duplicated_Lead__c = duplicate.isDuplicate,
-            Duplicate_Reason__c = duplicate.reason
+            Duplicate_Reason__c = duplicate.reason,
+            // Added 2026-09-15: provisional Meta identifiers/campaign fields (docs/DECISIONS.md).
+            // campaign_name also feeds the org's existing Actualizar_Campa_as_Digitales flow
+            // (Campaign auto-create/link) once LeadSource resolves into Redes Sociales
+            // Empresa/Propias del Vendedor — no new automation needed on our side for that.
+            // ID_Meta__c amendment (2026-09-16, confirmed by MGAgencia): MGAgencia already
+            // transmits Meta's lead id via external_lead_id — no separate meta_lead_id field
+            // exists or is needed; reuse the same value already stored on External_Lead_Id__c.
+            ID_Meta__c = externalLeadId,
+            Identificador_Lead_Capture__c = String.isBlank(request.meta_form_id)
+                ? null : request.meta_form_id.trim(),
+            campa_a_meta__c = String.isBlank(request.campaign_name) ? null : request.campaign_name.trim(),
+            Descripci_n_de_Meta__c = String.isBlank(request.campaign_description)
+                ? null : request.campaign_description.trim()
         );
     }
 

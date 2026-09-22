@@ -3,6 +3,8 @@
 **Fecha:** 2026-09-07
 **Elaborado por:** Grupo Cóndor
 
+**Novedades (2026-09-17):** se agregaron 4 campos opcionales nuevos: `platform`, `meta_form_id`, `campaign_name`, `campaign_description` (§4). Son adiciones no disruptivas — las integraciones existentes no se ven afectadas si se omiten. **Estos campos ya están disponibles en Sandbox para pruebas; todavía no se desplegaron a Producción.** Por favor validen contra el entorno de Sandbox (§2) — les avisamos acá cuando estén en vivo en Producción.
+
 **Novedades (2026-09-07):** Pase a producción. La URL base y el endpoint de
 token de producción ya están confirmados (§2, §3). Las credenciales
 (`client_id` / `client_secret`) están pendientes de entrega por nuestro
@@ -126,6 +128,10 @@ Un objeto JSON por solicitud. Sin agrupación por lote/arreglo. Las propiedades 
 | `purchase_timeline` | string | No | 50 caracteres | Texto libre | Plazo de compra estimado por el cliente. | `"inmediatamente"` |
 | `trade_in` | string | No | 50 caracteres | Texto libre | Indica si el cliente entrega su vehículo actual como parte de pago. | `"si"` |
 | `test_drive_requested` | boolean | No | — | `true` / `false` | Si el cliente solicitó una prueba de manejo. Se guarda tal cual se recibe. | `true` |
+| `platform` | string | No | — | Uno de los valores de catálogo indicados abajo | Origen del lead. Resuelve nuestro ruteo interno. Omitir el campo mantiene el comportamiento actual sin cambios. | `"fb"` |
+| `meta_form_id` | string | No | 255 caracteres | Texto libre | Identificador del formulario/anuncio de Meta. | `"1073658921844483"` |
+| `campaign_name` | string | No | 250 caracteres | Texto libre | Nombre de la campaña. También se usa para vincular automáticamente el lead a la campaña correspondiente de nuestro lado. | `"GIMC_MG_PY_Lead ads_MG3 HEV_0909"` |
+| `campaign_description` | string | No | 32768 caracteres | Texto libre | Descripción de la campaña, si está disponible. | `"—"` |
 
 **Catálogo de `branch_code`**
 
@@ -146,6 +152,17 @@ Un objeto JSON por solicitud. Sin agrupación por lote/arreglo. Las propiedades 
 
 > Los valores deben coincidir exactamente (mayúsculas/minúsculas y tildes incluidas). Un valor fuera de este catálogo es rechazado con `422` (`UNKNOWN_VALUE`); omitir el campo es válido.
 
+**Catálogo de `platform`**
+
+| Valor | Significado |
+|---|---|
+| `fb` | Facebook |
+| `ig` | Instagram |
+| `tiktok` | TikTok *(aún no confirmado con tráfico real de ninguno de los dos lados)* |
+| `web` | Web / formulario de test drive *(aún no confirmado con tráfico real de ninguno de los dos lados)* |
+
+> Minúsculas, coincidencia exacta. `facebook`/`instagram` (nombres completos) **no** se aceptan — usar `fb`/`ig`. Un valor fuera de este catálogo es rechazado con `422` (`UNKNOWN_VALUE`); omitir el campo mantiene el ruteo actual sin cambios.
+
 ### 4.1 Ejemplo de solicitud
 
 ```json
@@ -161,11 +178,14 @@ Un objeto JSON por solicitud. Sin agrupación por lote/arreglo. Las propiedades 
   "payment_method": "financiacion_bancaria",
   "purchase_timeline": "inmediatamente",
   "trade_in": "si",
-  "test_drive_requested": true
+  "test_drive_requested": true,
+  "platform": "fb",
+  "meta_form_id": "1073658921844483",
+  "campaign_name": "GIMC_MG_PY_Lead ads_MG3 HEV_0909"
 }
 ```
 
-Todos los campos de esta sección salvo `interest_model`, `payment_method`, `purchase_timeline` y `trade_in` no tienen límite de longitud declarado; esos cuatro devuelven `422` (`INVALID_FORMAT`) si se envía un valor que excede el máximo indicado, en lugar de truncarlo silenciosamente.
+Todos los campos de esta sección salvo `interest_model`, `payment_method`, `purchase_timeline`, `trade_in`, `meta_form_id`, `campaign_name` y `campaign_description` no tienen límite de longitud declarado; esos devuelven `422` (`INVALID_FORMAT`) si se envía un valor que excede el máximo indicado, en lugar de truncarlo silenciosamente.
 
 ---
 
@@ -303,7 +323,7 @@ Ejecutar los siguientes escenarios contra el entorno sandbox antes del pase a pr
 
 | Elemento | Detalle |
 |---|---|
-| Contacto | *[Contacto de integración de Grupo Cóndor — a confirmar]* |
+| Contacto | Hanssel Mirabal — `hanssel.mirabal@grupocondor.com.py` |
 | Comunicación de cambios | Todo cambio a este contrato (campos nuevos o modificados, códigos de estado o comportamiento) se comunicará a MGAgencia por escrito antes de su despliegue. Los cambios disruptivos se publican bajo una nueva versión de la API (§1); los cambios no disruptivos se documentan como una actualización de esta especificación. |
 
 ---

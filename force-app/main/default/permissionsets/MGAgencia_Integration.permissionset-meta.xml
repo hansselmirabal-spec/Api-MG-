@@ -103,6 +103,28 @@
         <field>Lead.TestDriveRequested__c</field>
         <readable>true</readable>
     </fieldPermissions>
+    <!-- Added 2026-09-15: provisional platform/Meta fields (docs/DECISIONS.md, PENDING
+         MGAgencia confirmation). -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Lead.ID_Meta__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Lead.Identificador_Lead_Capture__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Lead.campa_a_meta__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Lead.Descripci_n_de_Meta__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
         <field>MGAgencia_Integration_Log__c.Integration_Id__c</field>

@@ -3,6 +3,8 @@
 **Date:** 2026-09-07
 **Prepared by:** Grupo Cóndor
 
+**What's new (2026-09-17):** 4 new optional request fields added: `platform`, `meta_form_id`, `campaign_name`, `campaign_description` (§4). Non-breaking additions — existing integrations are unaffected if these fields are omitted. **These fields are live in Sandbox now for testing; not yet deployed to Production.** Please validate against the Sandbox environment (§2) — we'll confirm here once they're live in Production.
+
 **What's new (2026-09-07):** Production go-live. The production base URL and
 token endpoint are now confirmed (§2, §3). Credentials (`client_id` /
 `client_secret`) are pending delivery through our secure channel — see §3.
@@ -124,6 +126,10 @@ One JSON object per request. No batch/array wrapping. Unknown properties sent by
 | `purchase_timeline` | string | No | 50 characters | Free text | Purchase timeline estimated by the customer. | `"inmediatamente"` |
 | `trade_in` | string | No | 50 characters | Free text | Whether the customer is trading in their current vehicle. | `"si"` |
 | `test_drive_requested` | boolean | No | — | `true` / `false` | Whether the customer requested a test drive. Stored as received. | `true` |
+| `platform` | string | No | — | One of the catalog values below | Lead origin. Resolves our internal routing. Omitting the field keeps today's default behavior unchanged. | `"fb"` |
+| `meta_form_id` | string | No | 255 characters | Free text | Meta's lead form/ad identifier. | `"1073658921844483"` |
+| `campaign_name` | string | No | 250 characters | Free text | Campaign name. Also used to auto-link the lead to the matching campaign on our side. | `"GIMC_MG_PY_Lead ads_MG3 HEV_0909"` |
+| `campaign_description` | string | No | 32768 characters | Free text | Campaign description, if available. | `"—"` |
 
 **`branch_code` catalog**
 
@@ -144,6 +150,17 @@ One JSON object per request. No batch/array wrapping. Unknown properties sent by
 
 > Values must match exactly (case and accents included). A value outside this catalog is rejected with `422` (`UNKNOWN_VALUE`); omitting the field is valid.
 
+**`platform` catalog**
+
+| Value | Meaning |
+|---|---|
+| `fb` | Facebook |
+| `ig` | Instagram |
+| `tiktok` | TikTok *(not yet confirmed against real traffic on either side)* |
+| `web` | Website / test drive form *(not yet confirmed against real traffic on either side)* |
+
+> Lowercase, exact match. `facebook`/`instagram` (the full names) are **not** accepted — use `fb`/`ig`. A value outside this catalog is rejected with `422` (`UNKNOWN_VALUE`); omitting the field keeps today's default routing unchanged.
+
 ### 4.1 Example request
 
 ```json
@@ -159,11 +176,14 @@ One JSON object per request. No batch/array wrapping. Unknown properties sent by
   "payment_method": "financiacion_bancaria",
   "purchase_timeline": "inmediatamente",
   "trade_in": "si",
-  "test_drive_requested": true
+  "test_drive_requested": true,
+  "platform": "fb",
+  "meta_form_id": "1073658921844483",
+  "campaign_name": "GIMC_MG_PY_Lead ads_MG3 HEV_0909"
 }
 ```
 
-Every field in this section except `interest_model`, `payment_method`, `purchase_timeline`, and `trade_in` has no declared length limit; those four return `422` (`INVALID_FORMAT`) when a value exceeds the stated maximum, rather than silently truncating it.
+Every field in this section except `interest_model`, `payment_method`, `purchase_timeline`, `trade_in`, `meta_form_id`, `campaign_name`, and `campaign_description` has no declared length limit; those return `422` (`INVALID_FORMAT`) when a value exceeds the stated maximum, rather than silently truncating it.
 
 ---
 
@@ -301,7 +321,7 @@ Run the following scenarios against the sandbox environment before go-live:
 
 | Item | Detail |
 |---|---|
-| Contact | *[Grupo Cóndor integration contact — to be provided]* |
+| Contact | Hanssel Mirabal — `hanssel.mirabal@grupocondor.com.py` |
 | Change communication | Any change to this contract (new/changed fields, status codes, or behavior) will be communicated to MGAgencia in writing before deployment. Breaking changes are released under a new API version (§1); non-breaking changes are documented as an update to this specification. |
 
 ---
