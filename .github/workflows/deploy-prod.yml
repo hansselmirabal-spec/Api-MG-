@@ -31,7 +31,7 @@ jobs:
             --client-id "${{ secrets.SF_CONSUMER_KEY_PROD }}" \
             --jwt-key-file server.key \
             --username "${{ secrets.SF_USERNAME_PROD }}" \
-            --instance-url "${{ secrets.SF_INSTANCE_URL_PROD }}" \
+            --instance-url "https://login.salesforce.com" \
             --alias mi-org
 
       - name: Deploy + run MGAgencia tests

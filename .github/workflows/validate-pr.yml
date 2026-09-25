@@ -30,7 +30,7 @@ jobs:
             --client-id "${{ secrets.SF_CONSUMER_KEY_QAS }}" \
             --jwt-key-file server.key \
             --username "${{ secrets.SF_USERNAME_QAS }}" \
-            --instance-url "${{ secrets.SF_INSTANCE_URL_QAS }}" \
+            --instance-url "https://test.salesforce.com" \
             --alias condor-qas
 
       - name: Validate deploy (check-only) + run MGAgencia tests

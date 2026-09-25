@@ -25,7 +25,7 @@ s/9hFslfhaenJkQ+rA2vbTLBm0YAaiyFC8nj/ZVYvA4SpHQ6Egc9RAms2GXAlqDF
 IrhQfErGa5+rbKgsTMRWiWDPaPFBYoYn+vp5tUIfkXGQJpP8XSZKeUZEhXcaVoCI
 C30vtJ9bKTqJbOsztXt7h0WI7pPJSQ==
 -----END CERTIFICATE-----</certificate>
-        <isAdminApproved>true</isAdminApproved>
+        <isAdminApproved>false</isAdminApproved>
         <scopes>Api</scopes>
         <scopes>RefreshToken</scopes>
     </oauthConfig>
