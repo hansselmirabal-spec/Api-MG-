@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConnectedApp xmlns="http://soap.sforce.com/2006/04/metadata">
+    <contactEmail>hanssel.mirabal@grupocondor.com.py</contactEmail>
+    <label>GitHub Actions Deploy</label>
+    <description>JWT Bearer Flow app used exclusively by the CI/CD pipeline (GitHub Actions) to deploy MGAgencia metadata. Not used by MGAgencia's own integration traffic — separate credential, separate blast radius.</description>
+    <oauthConfig>
+        <callbackUrl>https://login.salesforce.com/services/oauth2/callback</callbackUrl>
+        <certificate>-----BEGIN CERTIFICATE-----
+MIIDQjCCAioCCQDc1BJ6anpLGjANBgkqhkiG9w0BAQsFADBjMQswCQYDVQQGEwJQ
+WTEUMBIGA1UECgwLR3J1cG9Db25kb3IxHjAcBgNVBAsMFU1HQWdlbmNpYS1JbnRl
+Z3JhdGlvbjEeMBwGA1UEAwwVZ2l0aHViLWFjdGlvbnMtZGVwbG95MB4XDTI2MDky
+NTE3NTM1NVoXDTM2MDkyMjE3NTM1NVowYzELMAkGA1UEBhMCUFkxFDASBgNVBAoM
+C0dydXBvQ29uZG9yMR4wHAYDVQQLDBVNR0FnZW5jaWEtSW50ZWdyYXRpb24xHjAc
+BgNVBAMMFWdpdGh1Yi1hY3Rpb25zLWRlcGxveTCCASIwDQYJKoZIhvcNAQEBBQAD
+ggEPADCCAQoCggEBALWfXEgeNNOhjZnZynXttn+9QzB8snfYXV+7UPAmP5gd1udy
+7WqxaxyCWfhzT7xG6/M4BRjrycE417U9B6DG0dHdRZrl39PKnlS6dSohFdHtMaFB
+d5jw2vWoLo1UEkyqTF84zvQ0tUwWYH7967xD8iVL5KrAR4dxMl0uDqsrnD8nqGRu
+70tnn7MNqfOmoObxjBQjK/HJ6mWZuvqeLgBE8sAa7WRW/GsqhfZA3uh4V9qgSK4V
+raIHs0A2S4GBVD743q7aP7bNRw1Q7W7wAH3gRYgFl+yhRgwQHovTkRG7v8z74ZZc
+jhaz4iwmXTTsEtNhjYvycpj/aAMNW9cP2UkvZr8CAwEAATANBgkqhkiG9w0BAQsF
+AAOCAQEAk9QaMjjsXTA0nEI0Ea070VLLxwFxadOrPZ5wqqiN7mGRiO8d7X1prnnv
+F0OPqtpaq05KWhirjqkAO0QdOOsHUQSvu/xJrwlkK/rhSmbvw1SGcWx1lM4mGTkk
+dkK2E8tKuRcHGkG0u2BRiRis6KJ+diNMWoGEVTJk5345zAo4etXojT/S+89wB+4E
+s/9hFslfhaenJkQ+rA2vbTLBm0YAaiyFC8nj/ZVYvA4SpHQ6Egc9RAms2GXAlqDF
+IrhQfErGa5+rbKgsTMRWiWDPaPFBYoYn+vp5tUIfkXGQJpP8XSZKeUZEhXcaVoCI
+C30vtJ9bKTqJbOsztXt7h0WI7pPJSQ==
+-----END CERTIFICATE-----</certificate>
+        <isAdminApproved>false</isAdminApproved>
+        <scopes>Api</scopes>
+        <scopes>RefreshToken</scopes>
+    </oauthConfig>
+    <oauthPolicy>
+        <ipRelaxation>ENFORCE</ipRelaxation>
+        <refreshTokenPolicy>infinite</refreshTokenPolicy>
+    </oauthPolicy>
+</ConnectedApp>

@@ -1,0 +1,51 @@
+name: Validate PR (check-only deploy + tests)
+
+on:
+  pull_request:
+    branches: [main, production]
+
+concurrency:
+  group: validate-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Salesforce CLI
+        run: npm install --global @salesforce/cli@latest
+
+      - name: Write JWT key file
+        run: echo "${{ secrets.SF_JWT_KEY_QAS }}" > server.key
+
+      - name: Authenticate to condor-qas
+        run: |
+          sf org login jwt \
+            --client-id "${{ secrets.SF_CONSUMER_KEY_QAS }}" \
+            --jwt-key-file server.key \
+            --username "${{ secrets.SF_USERNAME_QAS }}" \
+            --instance-url "https://test.salesforce.com" \
+            --alias condor-qas
+
+      - name: Validate deploy (check-only) + run MGAgencia tests
+        run: |
+          sf project deploy validate -o condor-qas -d force-app/main/default \
+            --test-level RunSpecifiedTests \
+            --tests MGAgenciaLeadRestResourceTest \
+            --tests MGAgenciaLeadServiceTest \
+            --tests MGAgenciaPlatformResolverTest \
+            --tests MGAgenciaDuplicateEvaluatorTest \
+            --tests MGAgenciaPhoneNormalizerTest \
+            --tests MGAgenciaBranchResolverTest \
+            --tests MGAgenciaContactPreferenceResolverTest \
+            --wait 30
+
+      - name: Cleanup key file
+        if: always()
+        run: rm -f server.key
